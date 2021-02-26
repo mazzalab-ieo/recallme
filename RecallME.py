@@ -110,11 +110,11 @@ print('Preparing for analysis...')
 
 #Pass files to recalleR.r script
 if args.vaf_query == None and args.vaf_gt == None:
-    command = 'Rscript ' + script_folder + 'recaller.r -v ' + args.query_vcf.split('.')[0] + '.avinput' + ' -g '+ args.ground_truth.split('.')[0] + '.avinput' + ' --out ' + args.out_dir + 'Metrics/' + ' --caller ' + args.caller
+    command = 'Rscript ' + script_folder + 'recaller.R -v ' + args.query_vcf.split('.')[0] + '.avinput' + ' -g '+ args.ground_truth.split('.')[0] + '.avinput' + ' --out ' + args.out_dir + 'Metrics/' + ' --caller ' + args.caller
     process = sp.Popen(command, shell = True)
     process.wait()
 else:
-    command = 'Rscript ' + script_folder + 'recaller.r -v ' + args.query_vcf.split('.')[0] + '.avinput' + ' -g ' + args.ground_truth.split('.')[0] + '.avinput'+ ' --query_vaf ' + args.vaf_query + ' --gt_vaf ' + args.vaf_gt + ' --out ' + args.out_dir + 'Metrics/' + ' --caller ' + args.caller
+    command = 'Rscript ' + script_folder + 'recaller.R -v ' + args.query_vcf.split('.')[0] + '.avinput' + ' -g ' + args.ground_truth.split('.')[0] + '.avinput'+ ' --query_vaf ' + args.vaf_query + ' --gt_vaf ' + args.vaf_gt + ' --out ' + args.out_dir + 'Metrics/' + ' --caller ' + args.caller
     process = sp.Popen(command, shell = True)
     process.wait()
 
@@ -147,7 +147,7 @@ if os.path.isfile(args.out_dir +  'Metrics/' + 'FNs.txt'):
         print('High Confidence Regions Bed file was not provided')
         print('Skipping Specificity computation...')
 
-        command = 'Rscript ' + script_folder + 'pileup_recaller.r ' + '--pileup_file ' + args.out_dir + 'query_pileup.avinput ' + '--metrics ' + args.out_dir + 'metrics.txt ' +  '--TPs_table ' + args.out_dir + 'TPs.txt ' + '--FPs_table ' + args.out_dir + 'FPs.txt ' + '--FNs_table ' + args.out_dir + 'FNs.txt --out ' + args.out_dir
+        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file ' + args.out_dir + 'query_pileup.avinput ' + '--metrics ' + args.out_dir + 'metrics.txt ' +  '--TPs_table ' + args.out_dir + 'TPs.txt ' + '--FPs_table ' + args.out_dir + 'FPs.txt ' + '--FNs_table ' + args.out_dir + 'FNs.txt --out ' + args.out_dir
         process = sp.Popen(command, shell=True)
         process.wait()
         print('Tables generated!')
@@ -168,7 +168,7 @@ if os.path.isfile(args.out_dir +  'Metrics/' + 'FNs.txt'):
         process = sp.Popen(command, shell=True)
         process.wait()
 
-        command = 'Rscript ' + script_folder + 'pileup_recaller.r ' + '--pileup_file ' + args.out_dir + 'query_pileup.avinput ' + '--metrics ' + args.out_dir + 'Metrics/metrics.txt ' + '--bases ' + args.out_dir + 'Metrics/bases.txt ' + '--TPs_table ' + args.out_dir + 'Metrics/TPs.txt ' + '--FPs_table ' + args.out_dir + 'Metrics/FPs.txt ' + '--FNs_table ' + args.out_dir + 'Metrics/FNs.txt --out ' + args.out_dir + '/Metrics/'
+        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file ' + args.out_dir + 'query_pileup.avinput ' + '--metrics ' + args.out_dir + 'Metrics/metrics.txt ' + '--bases ' + args.out_dir + 'Metrics/bases.txt ' + '--TPs_table ' + args.out_dir + 'Metrics/TPs.txt ' + '--FPs_table ' + args.out_dir + 'Metrics/FPs.txt ' + '--FNs_table ' + args.out_dir + 'Metrics/FNs.txt --out ' + args.out_dir + '/Metrics/'
         process = sp.Popen(command, shell=True)
         process.wait()
 
