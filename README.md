@@ -28,7 +28,7 @@ python -q $QUERY_VCF \
 * **GENOME_BED** is a bedtools specific bed file with chromosome sizes in bps (i.e. chr1 n)
 * **BAM** file for query
 * **ANNOVAR_DIR** the directory where is stored convert2annovar.pl which is required for running RecallME
-* **CALLER_NAME** the name of the caller used to produce the query VCF file (GATK, TVC, Deepvariant)
+* **CALLER_NAME** the name of the caller used to produce the query VCF file (GATK, TVC, Deepvariant, VarScan, LoFreq)
 
 For more info on required and not required commands, please type:
 python RecallME.py --help
