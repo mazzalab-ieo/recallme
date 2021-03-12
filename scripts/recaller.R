@@ -62,12 +62,13 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq"){
 
     query_vcf$VAF = vaf
     query_vcf$DP = dp
-}else if (opt$caller == "VarScan"){
-    vaf = strsplit(as.character(query_vcf$V16), ":")
+}else if (opt$caller == "VarScan2"){
+    vaf = strsplit(as.character(query_vcf$V15), ":")
     vaf = sapply(vaf, "[[", 7)
+    vaf = gsub("%", "", vaf)
     vaf = as.numeric(vaf)
 
-    dp = strsplit(as.character(query_vcf$V16), ":")
+    dp = strsplit(as.character(query_vcf$V15), ":")
     dp = sapply(dp, "[[", 4)
     dp = as.numeric(dp)
 
