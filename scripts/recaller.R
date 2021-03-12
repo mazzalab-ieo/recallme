@@ -75,7 +75,20 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq"){
     query_vcf$VAF = vaf
     query_vcf$DP = dp
 
+}else if (opt$caller == "VarDict"){
+    vaf = strsplit(as.character(query_vcf$V15), ":")
+    vaf = sapply(vaf, "[[", 7)
+    vaf = as.numeric(vaf)
+
+    dp = strsplit(as.character(query_vcf$V15), ":")
+    dp = sapply(dp, "[[", 2)
+    dp = as.numeric(dp)
+
+    query_vcf$VAF = vaf
+    query_vcf$DP = dp
+
 }
+
 print("VAF and DP extracted and added.")
 
 if (opt$query_vaf == "NA"){
