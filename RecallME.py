@@ -56,7 +56,7 @@ parser.add_argument('--vaf_query', type=float,
 parser.add_argument('--vaf_gt', type=float,
                     help='Set VAF threshold for ground truth VCF (not required)', required=False)
 parser.add_argument('--caller', type=str,
-                    help='Caller which produced the query VCF (GATK, TVC, Deepvariant, VarScan2, LoFreq)', required=True)                   
+                    help='Caller which produced the query VCF (GATK, TVC, Deepvariant, VarScan2, LoFreq, VarDict)', required=True)                   
 args = parser.parse_args()
 
 '''
