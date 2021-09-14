@@ -1,0 +1,724 @@
+---
+title: "ReportME"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+    navbar:
+      - { icon: "fa-github", href: "https://github.com/mazzalab-ieo/recallme", align: right}
+params:
+  query: ""
+  TP_snv: ""
+  TP_indels: ""
+  FP_snv: "" 
+  FP_indels: ""
+  FN_snv: ""
+  FN_indels: ""
+  metrics_snv: ""
+  metrics_indel: ""
+  caller: ""
+---
+<style>
+.navbar {
+  background-color:steelblue;
+}
+
+.navbar-inverse .navbar-nav > li > a:hover,
+.navbar-inverse .navbar-nav > li > a:focus {
+    background-color: lightblue;
+    color: white;
+}
+.navbar-inverse .navbar-nav > .active > a,
+.navbar-inverse .navbar-nav > .active > a:hover,
+.navbar-inverse .navbar-nav > .active > a:focus {
+  color: white;
+  background-color: lightblue;
+}
+.navbar-inverse .navbar-toggle:hover,
+.navbar-inverse .navbar-toggle:focus {
+  background-color: lightblue;
+}
+.navbar-inverse .navbar-collapse,
+.navbar-inverse .navbar-form {
+  border-color: lightblue;
+}
+</style>
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(DT)
+library(reactable)
+#library(optparse)
+query <- read.delim(params$query
+                    , sep = "\t"
+                    , header = F)
+
+TP_snv <- read.delim(params$TP_snv
+                 , sep = " "
+                 , header = F)
+TP_indel <- read.delim(params$TP_indels
+                 , sep = " "
+                 , header = F)
+
+FP_snv <- read.delim(params$FP_snv
+                 , sep = " "
+                 , header = F)
+
+FP_indel <- read.delim(params$FP_indels
+                 , sep = " "
+                 , header = F)
+
+FN_snv <- read.delim(params$FN_snv
+                 , sep = " "
+                 , header = F)
+
+FN_indel <- read.delim(params$FN_indels
+                 , sep = " "
+                 , header = F)
+
+metrics_bioinfo_snv <- read.delim(params$metrics_snv
+                      , sep = "\t"
+                      , header = T)
+
+metrics_bioinfo_indel <- read.delim(params$metrics_indel
+                      , sep = "\t"
+                      , header = T)
+
+colnames(query)[ncol(query)] <- "type"
+#SNV metrics
+tps_snv <- dplyr::left_join(TP_snv, query, by = c("V1", "V2", "V3", "V4", "V5"))
+tps_snv <- tps_snv[!duplicated(tps_snv),]
+fps_snv <- dplyr::left_join(FP_snv, query, by = c("V1", "V2", "V3", "V4", "V5"))
+fps_snv <- fps_snv[!duplicated(fps_snv),]
+fns_snv <- dplyr::left_join(FN_snv, query, by = c("V1", "V2", "V3", "V4", "V5"))
+fns_snv <- fns_snv[!duplicated(fns_snv),]
+
+if (params$caller == "GATK" || params$caller == "TVC" || params$caller == "LoFreq"){
+  vaf = str_match_all(tps_snv$V13, "AF(.*?);")
+  vaf = sapply(vaf, "[[", 1)
+  vaf = sapply(str_split(vaf, "AF="), "[[",2)
+  vaf = as.numeric(sapply(str_split(vaf, ";"), "[[",1))
+  
+  dp = str_match_all(tps_snv$V13, "DP(.*?);")
+  dp = sapply(dp, "[[", 1)
+  dp = sapply(str_split(dp, "DP="), "[[",2)
+  dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
+  
+  qd = str_match_all(tps_snv$V13, "QD(.*?);")
+  qd = sapply(qd, "[", 1)
+  qd = sapply(str_split(qd, "QD="), "[",2)
+  qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+  
+  #stb = str_match_all(tps_snv$V13, "STB(.*?);")
+  #stb = sapply(stb, "[", 1)
+  #stb = sapply(str_split(stb, "STB="), "[",2)
+  #stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+  
+  tps_snv$VAF = vaf
+  tps_snv$DP = dp
+  tps_snv$QD = qd
+  #tps$TYPE = type
+  #tps_snv$STB = stb
+  
+  vaf = str_match_all(fps_snv$V13, "AF(.*?);")
+  vaf = sapply(vaf, "[[", 1)
+  vaf = sapply(str_split(vaf, "AF="), "[[",2)
+  vaf = as.numeric(sapply(str_split(vaf, ";"), "[[",1))
+  
+  dp = str_match_all(fps_snv$V13, "DP(.*?);")
+  dp = sapply(dp, "[[", 1)
+  dp = sapply(str_split(dp, "DP="), "[[",2)
+  dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
+  
+  qd = str_match_all(fps_snv$V13, "QD(.*?);")
+  qd = sapply(qd, "[", 1)
+  qd = sapply(str_split(qd, "QD="), "[",2)
+  qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+  
+  #stb = str_match_all(fps_snv$V13, "STB(.*?);")
+  #stb = sapply(stb, "[", 1)
+  #stb = sapply(str_split(stb, "STB="), "[[",2)
+  #stb = as.numeric(sapply(str_split(stb, ";"), "[[",1))
+
+  fps_snv$VAF = vaf
+  fps_snv$DP = dp
+  fps_snv$QD = qd
+  #fps$TYPE = type
+  #fps_snv$STB = stb
+  
+  query_snv <- query %>% filter(type == "SNV")
+  vaf = str_match_all(query_snv$V13, "AF(.*?);")
+  vaf = sapply(vaf, "[[", 1)
+  vaf = sapply(str_split(vaf, "AF="), "[[",2)
+  vaf = as.numeric(sapply(str_split(vaf, ";"), "[[",1))
+  
+  dp = str_match_all(query_snv$V13, "DP(.*?);")
+  dp = sapply(dp, "[[", 1)
+  dp = sapply(str_split(dp, "DP="), "[[",2)
+  dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
+  
+  qd = str_match_all(query_snv$V13, "QD(.*?);")
+  qd = sapply(qd, "[", 1)
+  qd = sapply(str_split(qd, "QD="), "[",2)
+  qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+  
+  #stb = str_match_all(query_snv$V13, "STB(.*?);")
+  #stb = sapply(stb, "[", 1)
+  #stb = sapply(str_split(stb, "STB="), "[",2)
+  #stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+  
+  
+  query_snv$VAF = vaf
+  query_snv$DP = dp
+  query_snv$QD = qd
+  #query$TYPE = type
+  #query_snv$STB = stb
+  
+  
+  #INDELs metrics
+  tps_indel <- dplyr::left_join(TP_indel, query, by = c("V1", "V2", "V3", "V4", "V5"))
+  tps_indel <- tps_indel[!duplicated(tps_indel),]
+  fps_indel <- dplyr::left_join(FP_indel, query, by = c("V1", "V2", "V3", "V4", "V5"))
+  fps_indel <- fps_indel[!duplicated(fps_indel),]
+  fns_indel <- dplyr::left_join(FN_indel, query, by = c("V1", "V2", "V3", "V4", "V5"))
+  fns_indel <- fns_indel[!duplicated(fns_indel),]
+  
+  vaf = str_match_all(tps_indel$V13, "AF(.*?);")
+  vaf = sapply(vaf, "[[", 1)
+  vaf = sapply(str_split(vaf, "AF="), "[[",2)
+  vaf = as.numeric(sapply(str_split(vaf, ";"), "[[",1))
+  
+  dp = str_match_all(tps_indel$V13, "DP(.*?);")
+  dp = sapply(dp, "[[", 1)
+  dp = sapply(str_split(dp, "DP="), "[[",2)
+  dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
+  
+  qd = str_match_all(tps_indel$V13, "QD(.*?);")
+  qd = sapply(qd, "[", 1)
+  qd = sapply(str_split(qd, "QD="), "[",2)
+  qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+  
+  #stb = str_match_all(tps_indel$V13, "STB(.*?);")
+  #stb = sapply(stb, "[", 1)
+  #stb = sapply(str_split(stb, "STB="), "[",2)
+  #stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+  
+  tps_indel$VAF = vaf
+  tps_indel$DP = dp
+  tps_indel$QD = qd
+  #tps$TYPE = type
+  #tps_indel$STB = stb
+  
+  vaf = str_match_all(fps_indel$V13, "AF(.*?);")
+  vaf = sapply(vaf, "[[", 1)
+  vaf = sapply(str_split(vaf, "AF="), "[[",2)
+  vaf = as.numeric(sapply(str_split(vaf, ";"), "[[",1))
+  
+  dp = str_match_all(fps_indel$V13, "DP(.*?);")
+  dp = sapply(dp, "[[", 1)
+  dp = sapply(str_split(dp, "DP="), "[[",2)
+  dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
+  
+  qd = str_match_all(fps_indel$V13, "QD(.*?);")
+  qd = sapply(qd, "[", 1)
+  qd = sapply(str_split(qd, "QD="), "[",2)
+  qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+  
+  #stb = str_match_all(fps_indel$V13, "STB(.*?);")
+  #stb = sapply(stb, "[", 1)
+  #stb = sapply(str_split(stb, "STB="), "[[",2)
+  #stb = as.numeric(sapply(str_split(stb, ";"), "[[",1))
+  
+  fps_indel$VAF = vaf
+  fps_indel$DP = dp
+  fps_indel$QD = qd
+  #fps$TYPE = type
+  #fps_indel$STB = stb
+  
+  query_indel <- query %>% filter(type == "INDEL")
+  vaf = str_match_all(query_indel$V13, "AF(.*?);")
+  vaf = sapply(vaf, "[[", 1)
+  vaf = sapply(str_split(vaf, "AF="), "[[",2)
+  vaf = as.numeric(sapply(str_split(vaf, ";"), "[[",1))
+  
+  dp = str_match_all(query_indel$V13, "DP(.*?);")
+  dp = sapply(dp, "[[", 1)
+  dp = sapply(str_split(dp, "DP="), "[[",2)
+  dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
+  
+  qd = str_match_all(query_indel$V13, "QD(.*?);")
+  qd = sapply(qd, "[", 1)
+  qd = sapply(str_split(qd, "QD="), "[",2)
+  qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+  
+  #stb = str_match_all(query_indel$V13, "STB(.*?);")
+  #stb = sapply(stb, "[", 1)
+  #stb = sapply(str_split(stb, "STB="), "[",2)
+  #stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+  
+  
+  query_indel$VAF = vaf
+  query_indel$DP = dp
+  query_indel$QD = qd
+  #query$TYPE = type
+  #query_indel$STB = stb
+}
+
+```
+
+Plots SNVs
+=======================================================================
+
+Row 
+-----------------------------------------------------------------------
+
+### Variants - Depth distribution
+
+```{r}
+p3<-plotly::ggplotly(ggplot(query_snv, aes(x=DP)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Depth", y=""))
+
+p3
+```
+
+### True Positives - Depth distribution 
+
+```{r}
+p<-plotly::ggplotly(ggplot(tps_snv, aes(x=DP)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Depth", y=""))
+
+p
+```
+
+### False Positives - Depth distribution
+
+```{r}
+p2<-plotly::ggplotly(ggplot(fps_snv, aes(x=DP)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Depth", y="" )) 
+
+
+p2
+
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### Variants - Quality by depth distribution
+
+```{r}
+p3<-plotly::ggplotly(ggplot(query_snv, aes(x=QD)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Quality by depth", y="")) 
+
+
+p3
+```
+
+### True Positives - Quality by depth distribution
+
+```{r}
+p3<-plotly::ggplotly(ggplot(tps_snv, aes(x=QD)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Quality by depth", y="")) 
+
+
+p3
+```
+
+### False Positives - Quality by depth distribution
+
+```{r}
+p2<-plotly::ggplotly(ggplot(fps_snv, aes(x=QD)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Quality by depth", y="" )) 
+
+
+p2
+
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### Variants - VAF distribution
+
+```{r}
+p3<-plotly::ggplotly(ggplot(query_snv, aes(x=VAF)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "VAF", y="")) 
+
+
+p3
+```
+
+
+### True Positives - VAF distribution
+
+```{r}
+p3<-plotly::ggplotly(ggplot(tps_snv, aes(x=VAF)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "VAF", y="")) 
+
+
+p3
+```
+
+### False Positives - VAF distribution
+
+```{r}
+p2<-plotly::ggplotly(ggplot(fps_snv, aes(x=VAF)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "VAF", y="" )) 
+
+
+p2
+
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### Variants - Strand Bias distribution
+
+```{r}
+#p3<-plotly::ggplotly(ggplot(query_snv, aes(x=STB)) +
+ # theme_classic() + 
+  #geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  #labs(x= "STB", y="")) 
+
+
+#p3
+```
+
+### True Positives - Strand Bias distribution
+
+```{r}
+#p3<-plotly::ggplotly(ggplot(tps_snv, aes(x=STB)) +
+ # theme_classic() + 
+  #geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  #labs(x= "STB", y="")) 
+
+
+#p3
+```
+
+### False Positives - Strand Bias distribution
+
+```{r}
+#p2<-plotly::ggplotly(ggplot(fps_snv, aes(x=STB)) +
+ # theme_classic() + 
+  #geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  #labs(x= "STB", y="" )) 
+
+
+#p2
+
+```
+
+Plots INDELs
+=======================================================================
+
+Row 
+-----------------------------------------------------------------------
+
+### Variants - Depth distribution
+
+```{r}
+p3<-plotly::ggplotly(ggplot(query_indel, aes(x=DP)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Depth", y=""))
+
+p3
+```
+
+### True Positives - Depth distribution 
+
+```{r}
+p<-plotly::ggplotly(ggplot(tps_indel, aes(x=DP)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Depth", y=""))
+
+p
+```
+
+### False Positives - Depth distribution
+
+```{r}
+p2<-plotly::ggplotly(ggplot(fps_indel, aes(x=DP)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Depth", y="" )) 
+
+
+p2
+
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### Variants - Quality by depth distribution
+
+```{r}
+p3<-plotly::ggplotly(ggplot(query_indel, aes(x=QD)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Quality by depth", y="")) 
+
+
+p3
+```
+
+### True Positives - Quality by depth distribution
+
+```{r}
+p3<-plotly::ggplotly(ggplot(tps_indel, aes(x=QD)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Quality by depth", y="")) 
+
+
+p3
+```
+
+### False Positives - Quality by depth distribution
+
+```{r}
+p2<-plotly::ggplotly(ggplot(fps_indel, aes(x=QD)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "Quality by depth", y="" )) 
+
+
+p2
+
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### Variants - VAF distribution
+
+```{r}
+p3<-plotly::ggplotly(ggplot(query_indel, aes(x=VAF)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "VAF", y="")) 
+
+
+p3
+```
+
+### True Positives - VAF distribution
+
+```{r}
+p3<-plotly::ggplotly(ggplot(tps_indel, aes(x=VAF)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "VAF", y="")) 
+
+
+p3
+```
+
+### False Positives - VAF distribution
+
+```{r}
+p2<-plotly::ggplotly(ggplot(fps_indel, aes(x=VAF)) +
+  theme_classic() + 
+  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  labs(x= "VAF", y="" )) 
+
+
+p2
+
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### Variants - Strand Bias distribution
+
+```{r}
+#p3<-plotly::ggplotly(ggplot(query_indel, aes(x=STB)) +
+ # theme_classic() + 
+  #geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  #labs(x= "STB", y="")) 
+
+
+#p3
+```
+
+### True Positives - Strand Bias distribution
+
+```{r}
+#p3<-plotly::ggplotly(ggplot(tps_indel, aes(x=STB)) +
+ # theme_classic() + 
+  #geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+  #labs(x= "STB", y="")) 
+
+
+#p3
+```
+
+### False Positives - Strand Bias distribution
+
+```{r}
+#p2<-plotly::ggplotly(ggplot(fps_indel, aes(x=STB)) +
+ # theme_classic() + 
+#  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
+ # labs(x= "STB", y="" )) 
+
+
+#p2
+
+```
+
+Tables - SNVs {data-orientation=rows}
+=======================================================================
+
+Row 
+-----------------------------------------------------------------------
+
+### Sample INFO - SNVs
+
+```{r}
+n_tps_snv <- dim(tps_snv)[1]
+valueBox(n_tps_snv,caption = "TPs", color = "success")
+```
+
+### Sample INFO - SNVs
+
+```{r}
+n_fps_snv<- dim(fps_snv)[1]
+valueBox(n_fps_snv,caption = "FPs", color = "warning")
+```
+
+### Sample INFO - SNVs
+
+```{r}
+n_fns_snv<- dim(fns_snv)[1]
+valueBox(n_fns_snv,caption = "FNs", color = "danger")
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### Metrics
+
+```{r}
+reactable(as.data.frame(metrics_bioinfo_snv),wrap = F, filterable = T)
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### TPs variants
+
+```{r}
+colnames(tps_snv) <- c("Chr", "Start", "End", "Ref", "Alt", "Chr_VCF", "Pos", ".", "Ref_VCF", "Alt_VCF", "Quality", "Filter", "Info 1", "Info 2", "Info 3", "Type", "VAF", "DP", "QD" )
+reactable(as.data.frame(tps_snv),wrap = F, filterable = T)
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### FPs variants
+
+```{r}
+colnames(fps_snv) <- c("Chr", "Start", "End", "Ref", "Alt", "Chr_VCF", "Pos", ".", "Ref_VCF", "Alt_VCF", "Quality", "Filter", "Info 1", "Info 2", "Info 3", "Type", "VAF", "DP", "QD" )
+reactable(as.data.frame(fps_snv),wrap = F, filterable = T)
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### FNs variants
+
+```{r}
+fns_snv <- fns_snv[,c(1,2,3,4,5)]
+colnames(fns_snv) <- c("Chr", "Start", "End", "Ref", "Alt")
+reactable(as.data.frame(fns_snv),wrap = F, filterable = T)
+```
+
+Tables - INDELs {data-orientation=rows}
+=======================================================================
+
+Row 
+-----------------------------------------------------------------------
+
+### Sample INFO - INDELs
+
+```{r}
+n_tps_indel <- dim(tps_indel)[1]
+valueBox(n_tps_indel,caption = "TPs", color = "success")
+```
+
+### Sample INFO - INDELs
+
+```{r}
+n_fps_indel <- dim(fps_indel)[1]
+valueBox(n_fps_indel,caption = "FPs", color = "warning")
+```
+
+### Sample INFO - SNVs
+
+```{r}
+n_fns_indel <- dim(fns_indel)[1]
+valueBox(n_fns_indel,caption = "FNs", color = "danger")
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### Metrics
+
+```{r}
+reactable(as.data.frame(metrics_bioinfo_indel),wrap = F, filterable = T)
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### TPs variants
+
+```{r}
+colnames(tps_indel) <- c("Chr", "Start", "End", "Ref", "Alt", "Chr_VCF", "Pos", ".", "Ref_VCF", "Alt_VCF", "Quality", "Filter", "Info 1", "Info 2", "Info 3", "Type", "VAF", "DP", "QD" )
+reactable(as.data.frame(tps_indel),wrap = F, filterable = T)
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### FPs variants
+
+```{r}
+colnames(fps_indel) <- c("Chr", "Start", "End", "Ref", "Alt", "Chr_VCF", "Pos", ".", "Ref_VCF", "Alt_VCF", "Quality", "Filter", "Info 1", "Info 2", "Info 3", "Type", "VAF", "DP", "QD" )
+reactable(as.data.frame(fps_indel),wrap = F, filterable = T)
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### FNs variants
+
+```{r}
+fns_indel <- fns_snv[,c(1,2,3,4,5)]
+colnames(fns_indel) <- c("Chr", "Start", "End", "Ref", "Alt")
+reactable(as.data.frame(fns_indel),wrap = F, filterable = T)
+```

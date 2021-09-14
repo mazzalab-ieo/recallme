@@ -10,39 +10,65 @@ if (require("tidyverse") == FALSE){
 #library loading
 
 library("optparse")
-library("tidyverse")
+suppressMessages(library("tidyverse"))
 
 
-option_list <- list(make_option(c("--pileup_file"), default = "NA", type = "character", help = "Pileup file")
-                    , make_option(c("--metrics"), default = "NA", type = "character", help = "Metrics file")
-                    , make_option(c("--FNs_table"), default = "NA", type = "character", help = "Table of FNs")
-                    , make_option(c("--FPs_table"), default = "NA", type = "character", help = "Table of FPs")
-                    , make_option(c("--TPs_table"), default = "NA", type = "character", help = "Table of TPs")
+option_list <- list(make_option(c("--pileup_file_snv"), default = "NA", type = "character", help = "Pileup file for SNVs")
+                    , make_option(c("--pileup_file_indel"), default = "NA", type = "character", help = "Pileup file for SNVs")
+                    , make_option(c("--metrics_snv"), default = "NA", type = "character", help = "Metrics file")
+                    , make_option(c("--metrics_indel"), default = "NA", type = "character", help = "Metrics file")
+                    , make_option(c("--FNs_table_snv"), default = "NA", type = "character", help = "Table of FNs")
+                    , make_option(c("--FNs_table_indel"), default = "NA", type = "character", help = "Table of FNs")
+                    , make_option(c("--FPs_table_snv"), default = "NA", type = "character", help = "Table of FPs")
+                    , make_option(c("--FPs_table_indel"), default = "NA", type = "character", help = "Table of FPs")
+                    , make_option(c("--TPs_table_snv"), default = "NA", type = "character", help = "Table of TPs")
+                    , make_option(c("--TPs_table_indel"), default = "NA", type = "character", help = "Table of TPs")
                     , make_option(c("--bases"), default = "NA", type = "character", help = "number of bases covered by the panel high conf")
                     , make_option(c("--out"), default = "NA", type = "character", help = "Output directory")                 
 )
 
 opt = parse_args(OptionParser(option_list=option_list))
 
+
 #generate data frames for pileup, TP, FP, FN and metrics
 
-pileup_FNs <- read.delim(opt$pileup_file, 
+pileup_FNs_snv <- read.delim(opt$pileup_file_snv, 
                          , sep = "\t"
                          , header = F)
 
-TPs <- read.delim(opt$TPs_table
+pileup_FNs_indel <- read.delim(opt$pileup_file_indel, 
+                         , sep = "\t"
+                         , header = F)
+
+TPs_snv <- read.delim(opt$TPs_table_snv
                   , sep = " "
                   , header = F)
 
-FPs <- read.delim(opt$FPs_table
+TPs_indel <- read.delim(opt$TPs_table_indel
                   , sep = " "
                   , header = F)
 
-FNs <- read.delim(opt$FNs_table
+FPs_snv <- read.delim(opt$FPs_table_snv
                   , sep = " "
                   , header = F)
 
-metrics <- read.delim(opt$metrics
+FPs_indel <- read.delim(opt$FPs_table_indel
+                  , sep = " "
+                  , header = F)
+
+FNs_snv <- read.delim(opt$FNs_table_snv
+                  , sep = " "
+                  , header = F)
+
+FNs_indel <- read.delim(opt$FNs_table_indel
+                  , sep = " "
+                  , header = F)
+
+metrics_snv <- read.delim(opt$metrics_snv
+                  , sep = " "
+                  , header = T)
+
+metrics_indel <- read.delim(opt$metrics_indel
                   , sep = " "
                   , header = T)
 
@@ -55,9 +81,139 @@ if (opt$bases != "NA"){
 bases$V1 <- as.numeric(bases$V1) 
 covered_bases <- bases$V1
 }
- 
-if (is.null(pileup_FNs) == FALSE){
-  dp = str_match_all(pileup_FNs$V13, "DP(.*?);")
+
+####### SNV metrics ########### 
+if (is.null(pileup_FNs_snv) == FALSE){
+    dp = str_match_all(pileup_FNs_snv$V13, "DP(.*?);")
+    dp = sapply(dp, "[[", 1)
+    dp = sapply(str_split(dp, "DP="), "[[",2)
+    dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
+
+    median_dp <- median(dp)
+    print(paste0("Median Depth in FNs reviewed is ", median_dp))
+
+    #Create the string for the comparison
+    pileup_fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(pileup_FNs_snv$V1, "_"), pileup_FNs_snv$V2), "_"), pileup_FNs_snv$V3),"_"), pileup_FNs_snv$V4), "_"), pileup_FNs_snv$V5)
+    fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(FNs_snv$V1, "_"), FNs_snv$V2), "_"), FNs_snv$V3), "_"), FNs_snv$V4), "_"), FNs_snv$V5)
+
+    #remove possible duplicates
+    string_pileup <- pileup_fns[!duplicated(pileup_fns)]
+    string_fns <- fns[!duplicated(fns)]
+
+    #check how many FNs from pileup are in the FNs list
+    #length(string_pileup[string_pileup %in% string_fns])
+    #length(string_fns) - length(string_pileup[string_pileup %in% string_fns])
+
+    #list of FNs that are present in the bam file
+    in_the_bam <- data.frame(gsub("_", " ", string_fns[string_fns %in% string_pileup]))
+
+
+    #Create the not in function
+    '%!in%' <- function(x,y)!('%in%'(x,y))
+
+    #list of FNs that are not present in the bam file
+    not_in_bam <- data.frame(gsub("_", " ",string_fns[string_fns %!in% string_pileup]))
+
+    #actual FNs are the ones that are not present in the pileup
+    FNs_real <- string_fns[string_fns %!in% string_pileup]
+    #TPs updated are FNs not present in actual FNs added to TPs already listed
+    TPs_to_add <- string_fns[string_fns %!in% FNs_real] 
+
+    FNs_real <- data.frame(gsub("_", " ", FNs_real))
+
+    write.table(not_in_bam, paste0(opt$out, "Variants_not_in_bam_snv.txt")
+            , sep = " "
+            , col.names = F
+            , row.names = F 
+            , eol = "\n"
+            , quote = F)
+
+
+    write.table(FNs_real, paste0(opt$out, "FNs_updated_snv.txt")
+            , sep = " "
+            , col.names = F
+            , row.names = F
+            , eol = "\n"
+            , quote = F)
+
+    write.table(data.frame(gsub("_", " ", TPs_to_add)), paste0(opt$out, "TPs_to_add_snv.txt")
+            , sep = " "
+            , col.names = F
+            , row.names = F
+            , eol = "\n"
+            , quote = F)
+
+    write.table(in_the_bam, paste0(opt$out, "Variants_in_bam_not_called_snv.txt")
+            , sep = " "
+            , col.names = F
+            , row.names = F
+            , eol = "\n"
+            , quote = F)
+
+    TPs_to_add<- read.delim(paste0(opt$out, "TPs_to_add_snv.txt")
+                , sep = " "
+                , header = F)
+
+    FNs_real <- read.delim(paste0(opt$out, "FNs_updated_snv.txt")
+                , sep = " "
+                , header = F)
+
+
+    TPs_updated <- rbind(TPs_snv, TPs_to_add)
+    Recall_updated <- as.numeric(dim(TPs_updated)[1])/(as.numeric(dim(TPs_updated)[1])+as.numeric(dim(FNs_real)[1]))
+    F1_score_updated = 2*(as.numeric(metrics_snv$Precision)*as.numeric(Recall_updated))/(as.numeric(metrics_snv$Precision)+as.numeric(Recall_updated))
+    #set differences from end and start columns in order to detect SNV and INDELs
+    FNs_real$V4 <- (as.numeric(FNs_real$V3) - as.numeric(FNs_real$V2))
+    FPs_snv$V4 <- (as.numeric(FPs_snv$V3) - as.numeric(FPs_snv$V2))
+    TPs_updated$V4 <- (as.numeric(TPs_updated$V3) - as.numeric(TPs_updated$V2))
+
+    #if difference is 0 it is a SNV so, convert it to 1
+    TPs_updated$V4[which(TPs_updated$V4 == 0)] <-  1
+
+    FPs_snv$V4[which(FPs_snv$V4 == 0)] <-  1
+
+    FNs_real$V4[which(FNs_real$V4 == 0)] <-  1
+
+    FDR_updated <- dim(FPs_snv)[1]/(dim(TPs_updated)[1]+dim(FPs_snv)[1])
+
+    # total bases to be subtracted from covered bases
+    total_bases <- sum(as.numeric(TPs_updated$V4)) + sum(as.numeric(FPs_snv$V4)) + sum(as.numeric(FNs_real$V4))
+
+    #if bases is provided compute the TNs 
+    if (opt$bases != "NA"){
+    TNs_snv <- (as.numeric(covered_bases) - as.numeric(total_bases))
+
+    }
+    if (exists("TNs_snv") == TRUE){
+        Specificity <- TNs_snv/(TNs_snv + metrics_snv$FP)
+        write.table(data.frame(observed = metrics_snv$observed, expected = metrics_snv$expected, Recall_updated = round(Recall_updated,3), Precision = round(metrics_snv$Precision,3)
+        , Specificity = round(Specificity,3)
+        , FDR = round(FDR_updated,3), F1_score = round(F1_score_updated,3), TPs = as.numeric(dim(TPs_snv)[1]), TPs_in_bam = as.numeric(dim(TPs_to_add)[1]), TPs_updated = as.numeric(dim(TPs_updated)[1]), FPs = as.numeric(dim(FPs_snv)[1]), FNs_not_in_bam = as.numeric(dim(FNs_real)[1]), TNs = TNs_snv)
+        , paste0(opt$out, "metrics_snv_updated.txt")
+        , sep = "\t"
+        , col.names = T
+        , row.names = F
+        , quote = F)
+
+    }else{
+        write.table(data.frame(observed = metrics_snv$observed, expected = metrics_snv$expected, Recall = round(Recall_updated,3), Precision = round(metrics_snv$Precision,3)
+        , FDR = round(FDR_updated,3), F1_score = round(F1_score_updated,3), TPs = as.numeric(dim(TPs_snv)[1]), , TPs_in_bam = as.numeric(dim(TPs_to_add)[1]), TPs_updated = as.numeric(dim(TPs_updated)[1]), FPs = as.numeric(dim(FPs_snv)[1]), FNs_not_in_bam = as.numeric(dim(FNs_real)[1]), TNs = TNs_snv)
+        , paste0(opt$out, "metrics_snv_updated.txt")
+        , sep = "\t"
+        , col.names = T
+        , row.names = F
+        , quote = F)
+
+    }
+
+    }else{
+    print("No FNs... no updated metrics")
+    }
+
+
+####### INDEL metrics ########### 
+if (is.null(pileup_FNs_indel) == FALSE){
+  dp = str_match_all(pileup_FNs_indel$V13, "DP(.*?);")
   dp = sapply(dp, "[[", 1)
   dp = sapply(str_split(dp, "DP="), "[[",2)
   dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
@@ -66,8 +222,8 @@ if (is.null(pileup_FNs) == FALSE){
   print(paste0("Median Depth in FNs reviewed is ", median_dp))
 
   #Create the string for the comparison
-  pileup_fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(pileup_FNs$V1, "_"), pileup_FNs$V2), "_"), pileup_FNs$V3),"_"), pileup_FNs$V4), "_"), pileup_FNs$V5)
-  fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(FNs$V1, "_"), FNs$V2), "_"), FNs$V3), "_"), FNs$V4), "_"), FNs$V5)
+  pileup_fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(pileup_FNs_indel$V1, "_"), pileup_FNs_indel$V2), "_"), pileup_FNs_indel$V3),"_"), pileup_FNs_indel$V4), "_"), pileup_FNs_indel$V5)
+  fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(FNs_indel$V1, "_"), FNs_indel$V2), "_"), FNs_indel$V3), "_"), FNs_indel$V4), "_"), FNs_indel$V5)
 
   #remove possible duplicates
   string_pileup <- pileup_fns[!duplicated(pileup_fns)]
@@ -99,7 +255,7 @@ if (is.null(pileup_FNs) == FALSE){
 
 
 
-  write.table(not_in_bam, paste0(opt$out, "Variants_not_in_bam.txt")
+  write.table(not_in_bam, paste0(opt$out, "Variants_not_in_bam_indel.txt")
               , sep = " "
               , col.names = F
               , row.names = F 
@@ -107,79 +263,82 @@ if (is.null(pileup_FNs) == FALSE){
               , quote = F)
 
 
-  write.table(FNs_real, paste0(opt$out, "FNs_updated.txt")
+  write.table(FNs_real, paste0(opt$out, "FNs_updated_indel.txt")
               , sep = " "
               , col.names = F
               , row.names = F
               , eol = "\n"
               , quote = F)
 
-  write.table(data.frame(gsub("_", " ", TPs_to_add)), paste0(opt$out, "TPs_to_add.txt")
+  write.table(data.frame(gsub("_", " ", TPs_to_add)), paste0(opt$out, "TPs_to_add_indel.txt")
               , sep = " "
               , col.names = F
               , row.names = F
               , eol = "\n"
               , quote = F)
 
-  write.table(in_the_bam, paste0(opt$out, "Variants_in_bam_not_called.txt")
+  write.table(in_the_bam, paste0(opt$out, "Variants_in_bam_not_called_indel.txt")
               , sep = " "
               , col.names = F
               , row.names = F
               , eol = "\n"
               , quote = F)
-
-  TPs_to_add<- read.delim(paste0(opt$out, "TPs_to_add.txt")
+  info_tps_to_add <- file.info(paste0(opt$out, "TPs_to_add_indel.txt"))
+  if (info_tps_to_add$size == 0){
+    print("No TPs to add in INDELs")
+    TPs_updated <- TPs_indel
+    TPs_to_add <- data.frame()
+  }else{
+    TPs_to_add<- read.delim(paste0(opt$out, "TPs_to_add_indel.txt")
+                    , sep = " "
+                    , header = F)
+    TPs_updated <- rbind(TPs_indel, TPs_to_add)
+  }
+  FNs_real <- read.delim(paste0(opt$out, "FNs_updated_indel.txt")
                     , sep = " "
                     , header = F)
 
-  FNs_real <- read.delim(paste0(opt$out, "FNs_updated.txt")
-                    , sep = " "
-                    , header = F)
-
-
-  TPs_updated <- rbind(TPs, TPs_to_add)
+ 
   Recall_updated <- as.numeric(dim(TPs_updated)[1])/(as.numeric(dim(TPs_updated)[1])+as.numeric(dim(FNs_real)[1]))
-  F1_score_updated = 2*(as.numeric(metrics$Precision)*as.numeric(Recall_updated))/(as.numeric(metrics$Precision)+as.numeric(Recall_updated))
-  #set differences from end and start columns in order to detect SNV and INDELs
+  F1_score_updated = 2*(as.numeric(metrics_indel$Precision)*as.numeric(Recall_updated))/(as.numeric(metrics_indel$Precision)+as.numeric(Recall_updated))
+  #set differences from end and start columns in order to detect indel and INDELs
   FNs_real$V4 <- (as.numeric(FNs_real$V3) - as.numeric(FNs_real$V2))
-  FPs$V4 <- (as.numeric(FPs$V3) - as.numeric(FPs$V2))
+  FPs_indel$V4 <- (as.numeric(FPs_indel$V3) - as.numeric(FPs_indel$V2))
   TPs_updated$V4 <- (as.numeric(TPs_updated$V3) - as.numeric(TPs_updated$V2))
 
-  #if difference is 0 it is a SNV so, convert it to 1
+  #if difference is 0 it is a indel so, convert it to 1
   TPs_updated$V4[which(TPs_updated$V4 == 0)] <-  1
 
-  FPs$V4[which(FPs$V4 == 0)] <-  1
+  FPs_indel$V4[which(FPs_indel$V4 == 0)] <-  1
 
   FNs_real$V4[which(FNs_real$V4 == 0)] <-  1
 
-  FDR_updated <- dim(FPs)[1]/(dim(TPs_updated)[1]+dim(FPs)[1])
+  FDR_updated <- dim(FPs_indel)[1]/(dim(TPs_updated)[1]+dim(FPs_indel)[1])
 
   # total bases to be subtracted from covered bases
-  total_bases <- sum(as.numeric(TPs_updated$V4)) + sum(as.numeric(FPs$V4)) + sum(as.numeric(FNs_real$V4))
+  total_bases <- sum(as.numeric(TPs_updated$V4)) + sum(as.numeric(FPs_indel$V4)) + sum(as.numeric(FNs_real$V4))
 
   #if bases is provided compute the TNs 
   if (opt$bases != "NA"){
-      TNs <- (as.numeric(covered_bases) - as.numeric(total_bases))
+      TNs_indel <- (as.numeric(covered_bases) - as.numeric(total_bases))
       
   }
 
-
-
-  if (exists("TNs")== TRUE){
-      Specificity <- TNs/(TNs + metrics$FP)
-      write.table(data.frame(observed = (as.numeric(dim(TPs_updated)[1])+ as.numeric(dim(FPs)[1])), expected = metrics$expected, Recall_updated = round(Recall_updated,3), Precision = round(metrics$Precision,3)
+  if (exists("TNs_indel")== TRUE){
+      Specificity <- TNs_indel/(TNs_indel + metrics_indel$FP)
+      write.table(data.frame(observed = metrics_indel$observed, expected = metrics_indel$expected, Recall_updated = round(Recall_updated,3), Precision = round(metrics_indel$Precision,3)
       , Specificity = round(Specificity,3)
-      , FDR = round(FDR_updated,3), F1_score = round(F1_score_updated,3), TP = as.numeric(dim(TPs)[1]), TP_bam = as.numeric(dim(TPs_to_add)[1]), TP_updated = as.numeric(dim(TPs_updated)[1]), FP = as.numeric(dim(FPs)[1]), FN_updated = as.numeric(dim(FNs_real)[1]), TN = TNs)
-      , paste0(opt$out, "metrics_updated.txt")
+      , FDR = round(FDR_updated,3), F1_score = round(F1_score_updated,3), TPs = as.numeric(dim(TPs_indel)[1]), TPs_in_bam = as.numeric(dim(TPs_to_add)[1]), TPs_updated = as.numeric(dim(TPs_updated)[1]), FPs = as.numeric(dim(FPs_indel)[1]), FNs_not_in_bam = as.numeric(dim(FNs_real)[1]), TNs = TNs_indel)
+      , paste0(opt$out, "metrics_indel_updated.txt")
       , sep = "\t"
       , col.names = T
       , row.names = F
       , quote = F)
 
   }else{
-      write.table(data.frame(observed = metrics$observed, expected = metrics$expected, Recall = round(Recall_updated,3), Precision = round(metrics$Precision,3)
-      , FDR = round(FDR_updated,3), F1_score = round(F1_score_updated,3), TP = as.numeric(dim(TPs)[1]), , TP_bam = as.numeric(dim(TPs_to_add)[1]), TP_updated = as.numeric(dim(TPs_updated)[1]), FP = as.numeric(dim(FPs)[1]), FN_updated = as.numeric(dim(FNs_real)[1]), TN = TNs)
-      , paste0(opt$out, "metrics_updated.txt")
+      write.table(data.frame(observed = metrics_indel$observed, expected = metrics_indel$expected, Recall = round(Recall_updated,3), Precision = round(metrics_indel$Precision,3)
+      , FDR = round(FDR_updated,3), F1_score = round(F1_score_updated,3), TPs = as.numeric(dim(TPs_indel)[1]), , TPs_in_bam = as.numeric(dim(TPs_to_add)[1]), TPs_updated = as.numeric(dim(TPs_updated)[1]), FPs = as.numeric(dim(FPs_indel)[1]), FNs_not_in_bam = as.numeric(dim(FNs_real)[1]), TNs = TNs_indel)
+      , paste0(opt$out, "metrics_indel_updated.txt")
       , sep = "\t"
       , col.names = T
       , row.names = F
@@ -190,3 +349,6 @@ if (is.null(pileup_FNs) == FALSE){
 }else{
   print("No FNs... no updated metrics")
 }
+
+
+

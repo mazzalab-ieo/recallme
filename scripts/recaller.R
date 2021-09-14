@@ -10,9 +10,9 @@ if (require("tidyverse") == FALSE){
 #library loading
 
 library("optparse")
-library("tidyverse")
+suppressMessages(library("tidyverse"))
 
-
+#parsing arguments
 option_list <- list(make_option(c("-g", "--ground_truth"), default = "NA", type = "character", help = "Ground truth file")
     , make_option(c("-v", "--query_vcf"), default = "NA", type = "character", help = "Called VCF to compare")
     , make_option(c("--query_vaf"), default = "NA", type = "character", help = "Set VAF threshold for query VCF")
@@ -36,6 +36,12 @@ query_vcf = read.delim(opt$query_vcf
 
 print("Files loaded!")
 print("Extracting VAF and DP from query VCF...")
+
+#assign name to type column
+colnames(query_vcf)[ncol(query_vcf)] <- "type"
+colnames(ground_truth)[ncol(ground_truth)] <- "type"
+query_vcf$type <- as.character(query_vcf$type)
+ground_truth$type <- as.character(ground_truth$type)
 
 if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq"){
     vaf = str_match_all(query_vcf$V13, "AF(.*?);")
@@ -87,6 +93,10 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq"){
     query_vcf$VAF = vaf
     query_vcf$DP = dp
 
+}else if (opt$caller == "NA"){
+    print("Caller must be specified!")
+    print("Interrupting...")
+    break()
 }
 
 print("VAF and DP extracted and added.")
@@ -107,16 +117,84 @@ if (opt$gt_vaf == "NA"){
     gt = ground_truth
 }
 
+#create variables for SNVs and for INDELs
+call_snv <- call %>% filter(type == "SNV")
+gt_snv <- gt %>% filter(type == "SNV")
+call_indel <- call %>% filter(type == "INDEL")
+gt_indel <- gt %>% filter(type == "INDEL")
+call_string <- call_snv
+gt_string <- gt_snv
 print("Preparing for comparison...")
-call_string <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(call$V1, "_"), call$V2), "_"), call$V3), "_"), call$V4), "_"), call$V5)
-gt_string <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(gt$V1, "_"), gt$V2), "_"), gt$V3), "_"), gt$V4), "_"), gt$V5)
+call_string <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(call_string$V1, "_"), call_string$V2), "_"), call_string$V3), "_"), call_string$V4), "_"), call_string$V5)
+gt_string <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(gt_string$V1, "_"), gt_string$V2), "_"), gt_string$V3), "_"), gt_string$V4), "_"), gt_string$V5)
+print("Removing duplicates...")
+call_string <- call_string[!duplicated(call_string)]
+gt_string <- gt_string[!duplicated(gt_string)]
+#create function "not in"
+'%!in%' <- function(x,y)!('%in%'(x,y))
+#compute metrics for SNVs
+Recall <- length(call_string[call_string %in% gt_string])/length(gt_string)
+Precision <- length(call_string[call_string %in% gt_string])/(length(call_string[call_string %in% gt_string])+length(call_string[call_string %!in% gt_string]))
+FDR <- length(call_string[call_string %!in% gt_string])/length(call_string)
+F1_score <- 2*(Precision * Recall)/(Precision + Recall)
+
+TP <- call_string[call_string %in% gt_string]
+FP <- call_string[call_string %!in% gt_string]
+FN <- gt_string[gt_string %!in% call_string]
+
+observed <- length(call_string)
+expected <- length(gt_string)
+
+write.table(data.frame(observed = observed, expected = expected, Recall = round(Recall,3), Precision = round(Precision, 3)
+, FDR = round(FDR,3), F1_score = round(F1_score,3), TPs = length(TP), FPs = length(FP), FNs = length(FN))
+, paste0(opt$out, "metrics_snv.txt")
+, sep = " "
+, col.names = T
+, row.names = F
+, quote = F)
+
+FN <- gsub("_", " ", FN)
+TP <- gsub("_", " ", TP)
+FP <-gsub("_", " ", FP)
+TP <- data.frame(TP)
+write.table(TP
+, paste0(opt$out, "TPs_snv.txt")
+, sep = " "
+, col.names = F
+, row.names = F
+, quote = F)
+
+FP <- data.frame(FP)
+write.table(FP
+, paste0(opt$out, "FPs_snv.txt")
+, sep = " "
+, col.names = F
+, row.names = F
+, quote = F)
+
+FN <- data.frame(FN)
+write.table(FN
+, paste0(opt$out, "FNs_snv.txt")
+, sep = " "
+, col.names = F
+, row.names = F
+, quote = F)
+
+###### INDELS metrics
+
+call_string <- call_indel
+gt_string <- gt_indel
+
+print("Preparing for comparison...")
+call_string <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(call_string$V1, "_"), call_string$V2), "_"), call_string$V3), "_"), call_string$V4), "_"), call_string$V5)
+gt_string <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(gt_string$V1, "_"), gt_string$V2), "_"), gt_string$V3), "_"), gt_string$V4), "_"), gt_string$V5)
 
 print("Removing duplicates...")
 call_string <- call_string[!duplicated(call_string)]
 gt_string <- gt_string[!duplicated(gt_string)]
 
 #create function "not in"
-'%!in%' <- function(x,y)!('%in%'(x,y))
+#'%!in%' <- function(x,y)!('%in%'(x,y))
 
 
 Recall <- length(call_string[call_string %in% gt_string])/length(gt_string)
@@ -134,8 +212,8 @@ expected <- length(gt_string)
 
 print("Generating table with metrics...")
 write.table(data.frame(observed = observed, expected = expected, Recall = round(Recall,3), Precision = round(Precision, 3)
-, FDR = round(FDR,3), F1_score = round(F1_score,3), TP = length(TP), FP = length(FP), FN = length(FN))
-, paste0(opt$out, "metrics.txt")
+, FDR = round(FDR,3), F1_score = round(F1_score,3), TPs = length(TP), FPs = length(FP), FNs = length(FN))
+, paste0(opt$out, "metrics_indel.txt")
 , sep = " "
 , col.names = T
 , row.names = F
@@ -149,7 +227,7 @@ FP <-gsub("_", " ", FP)
 
 TP <- data.frame(TP)
 write.table(TP
-, paste0(opt$out, "TPs.txt")
+, paste0(opt$out, "TPs_indel.txt")
 , sep = " "
 , col.names = F
 , row.names = F
@@ -157,7 +235,7 @@ write.table(TP
 
 FP <- data.frame(FP)
 write.table(FP
-, paste0(opt$out, "FPs.txt")
+, paste0(opt$out, "FPs_indel.txt")
 , sep = " "
 , col.names = F
 , row.names = F
@@ -165,9 +243,8 @@ write.table(FP
 
 FN <- data.frame(FN)
 write.table(FN
-, paste0(opt$out, "FNs.txt")
+, paste0(opt$out, "FNs_indel.txt")
 , sep = " "
 , col.names = F
 , row.names = F
 , quote = F)
-
