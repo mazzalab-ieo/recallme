@@ -391,43 +391,6 @@ p2
 Row 
 -----------------------------------------------------------------------
 
-### Variants - Strand Bias distribution
-
-```{r}
-#p3<-plotly::ggplotly(ggplot(query_snv, aes(x=STB)) +
- # theme_classic() + 
-  #geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
-  #labs(x= "STB", y="")) 
-
-
-#p3
-```
-
-### True Positives - Strand Bias distribution
-
-```{r}
-#p3<-plotly::ggplotly(ggplot(tps_snv, aes(x=STB)) +
- # theme_classic() + 
-  #geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
-  #labs(x= "STB", y="")) 
-
-
-#p3
-```
-
-### False Positives - Strand Bias distribution
-
-```{r}
-#p2<-plotly::ggplotly(ggplot(fps_snv, aes(x=STB)) +
- # theme_classic() + 
-  #geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
-  #labs(x= "STB", y="" )) 
-
-
-#p2
-
-```
-
 Plots INDELs
 =======================================================================
 
@@ -551,43 +514,6 @@ p2
 
 Row 
 -----------------------------------------------------------------------
-
-### Variants - Strand Bias distribution
-
-```{r}
-#p3<-plotly::ggplotly(ggplot(query_indel, aes(x=STB)) +
- # theme_classic() + 
-  #geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
-  #labs(x= "STB", y="")) 
-
-
-#p3
-```
-
-### True Positives - Strand Bias distribution
-
-```{r}
-#p3<-plotly::ggplotly(ggplot(tps_indel, aes(x=STB)) +
- # theme_classic() + 
-  #geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
-  #labs(x= "STB", y="")) 
-
-
-#p3
-```
-
-### False Positives - Strand Bias distribution
-
-```{r}
-#p2<-plotly::ggplotly(ggplot(fps_indel, aes(x=STB)) +
- # theme_classic() + 
-#  geom_histogram(bins = 100, color="steelblue", linetype="dashed", size=0.5) +theme(legend.position = "none") + 
- # labs(x= "STB", y="" )) 
-
-
-#p2
-
-```
 
 Tables - SNVs {data-orientation=rows}
 =======================================================================

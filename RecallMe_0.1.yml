@@ -1,5 +1,5 @@
 #This is the yml file for installing the conda env of RecallMe v1.0 on Linux systems
-name: RecallMe_1.0
+name: RecallMe_0.1
 channels:
   - r
   - bioconda

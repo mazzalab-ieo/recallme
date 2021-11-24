@@ -43,7 +43,7 @@ colnames(ground_truth)[ncol(ground_truth)] <- "type"
 query_vcf$type <- as.character(query_vcf$type)
 ground_truth$type <- as.character(ground_truth$type)
 
-if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq"){
+if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt$caller == "Freebayes"){
     vaf = str_match_all(query_vcf$V13, "AF(.*?);")
     vaf = sapply(vaf, "[[", 1)
     vaf = sapply(str_split(vaf, "AF="), "[[",2)
@@ -93,10 +93,6 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq"){
     query_vcf$VAF = vaf
     query_vcf$DP = dp
 
-}else if (opt$caller == "NA"){
-    print("Caller must be specified!")
-    print("Interrupting...")
-    break()
 }
 
 print("VAF and DP extracted and added.")
@@ -105,7 +101,7 @@ if (opt$query_vaf == "NA"){
     call = query_vcf
 
 }else{
-    query_vcf = query_vcf %>% filter(VAF >= as.numeric(opt$query_vaf))
+    query_vcf = query_vcf %>% filter(query_vcf$VAF >= as.numeric(opt$query_vaf))
     call = query_vcf
 }
 
@@ -113,10 +109,60 @@ if (opt$gt_vaf == "NA"){
     gt = ground_truth
 
 }else{
-    ground_truth = ground_truth %>% filter(VAF >= as.numeric(opt$gt_vaf))
+    if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq"){
+    vaf = str_match_all(ground_truth$V13, "AF(.*?);")
+    vaf = sapply(vaf, "[[", 1)
+    vaf = sapply(str_split(vaf, "AF="), "[[",2)
+    vaf = as.numeric(sapply(str_split(vaf, ";"), "[[",1))
+
+    dp = str_match_all(ground_truth$V13, "DP(.*?);")
+    dp = sapply(dp, "[[", 1)
+    dp = sapply(str_split(dp, "DP="), "[[",2)
+    dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
+
+    ground_truth$VAF = vaf
+    ground_truth$DP = dp
+
+}else if(opt$caller == "Deepvariant"){
+    vaf = strsplit(as.character(ground_truth$V15), ":")
+    vaf = sapply(vaf, "[[", 5)
+    vaf = as.numeric(vaf)
+
+    dp = strsplit(as.character(ground_truth$V15), ":")
+    dp = sapply(dp, "[[", 3)
+    dp = as.numeric(dp)
+
+    ground_truth$VAF = vaf
+    ground_truth$DP = dp
+}else if (opt$caller == "VarScan2"){
+    vaf = strsplit(as.character(ground_truth$V15), ":")
+    vaf = sapply(vaf, "[[", 7)
+    vaf = gsub("%", "", vaf)
+    vaf = as.numeric(vaf)
+
+    dp = strsplit(as.character(ground_truth$V15), ":")
+    dp = sapply(dp, "[[", 4)
+    dp = as.numeric(dp)
+
+    ground_truth$VAF = vaf
+    ground_truth$DP = dp
+
+}else if (opt$caller == "VarDict"){
+    vaf = strsplit(as.character(ground_truth$V15), ":")
+    vaf = sapply(vaf, "[[", 7)
+    vaf = as.numeric(vaf)
+
+    dp = strsplit(as.character(ground_truth$V15), ":")
+    dp = sapply(dp, "[[", 2)
+    dp = as.numeric(dp)
+
+    ground_truth$VAF = vaf
+    ground_truth$DP = dp
+
+}
+    ground_truth = ground_truth %>% filter(ground_truth$VAF >= as.numeric(opt$gt_vaf))
     gt = ground_truth
 }
-
 #create variables for SNVs and for INDELs
 call_snv <- call %>% filter(type == "SNV")
 gt_snv <- gt %>% filter(type == "SNV")
@@ -147,7 +193,7 @@ expected <- length(gt_string)
 
 write.table(data.frame(observed = observed, expected = expected, Recall = round(Recall,3), Precision = round(Precision, 3)
 , FDR = round(FDR,3), F1_score = round(F1_score,3), TPs = length(TP), FPs = length(FP), FNs = length(FN))
-, paste0(opt$out, "metrics_snv.txt")
+, paste0(opt$out, "bioinfo_metrics_snv.txt")
 , sep = " "
 , col.names = T
 , row.names = F
@@ -188,7 +234,6 @@ gt_string <- gt_indel
 print("Preparing for comparison...")
 call_string <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(call_string$V1, "_"), call_string$V2), "_"), call_string$V3), "_"), call_string$V4), "_"), call_string$V5)
 gt_string <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(gt_string$V1, "_"), gt_string$V2), "_"), gt_string$V3), "_"), gt_string$V4), "_"), gt_string$V5)
-
 print("Removing duplicates...")
 call_string <- call_string[!duplicated(call_string)]
 gt_string <- gt_string[!duplicated(gt_string)]
@@ -213,7 +258,7 @@ expected <- length(gt_string)
 print("Generating table with metrics...")
 write.table(data.frame(observed = observed, expected = expected, Recall = round(Recall,3), Precision = round(Precision, 3)
 , FDR = round(FDR,3), F1_score = round(F1_score,3), TPs = length(TP), FPs = length(FP), FNs = length(FN))
-, paste0(opt$out, "metrics_indel.txt")
+, paste0(opt$out, "bioinfo_metrics_indel.txt")
 , sep = " "
 , col.names = T
 , row.names = F

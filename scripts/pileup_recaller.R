@@ -95,7 +95,7 @@ if (is.null(pileup_FNs_snv) == FALSE){
     #Create the string for the comparison
     pileup_fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(pileup_FNs_snv$V1, "_"), pileup_FNs_snv$V2), "_"), pileup_FNs_snv$V3),"_"), pileup_FNs_snv$V4), "_"), pileup_FNs_snv$V5)
     fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(FNs_snv$V1, "_"), FNs_snv$V2), "_"), FNs_snv$V3), "_"), FNs_snv$V4), "_"), FNs_snv$V5)
-
+    
     #remove possible duplicates
     string_pileup <- pileup_fns[!duplicated(pileup_fns)]
     string_fns <- fns[!duplicated(fns)]
@@ -167,7 +167,7 @@ if (is.null(pileup_FNs_snv) == FALSE){
     FPs_snv$V4 <- (as.numeric(FPs_snv$V3) - as.numeric(FPs_snv$V2))
     TPs_updated$V4 <- (as.numeric(TPs_updated$V3) - as.numeric(TPs_updated$V2))
 
-    #if difference is 0 it is a SNV so, convert it to 1
+    #if difference is 0 it is a SNV so, convert it to 1 (to compute specificity the program has to sum all of the bases covered by the variants so 1 for SNVs)
     TPs_updated$V4[which(TPs_updated$V4 == 0)] <-  1
 
     FPs_snv$V4[which(FPs_snv$V4 == 0)] <-  1
@@ -186,19 +186,19 @@ if (is.null(pileup_FNs_snv) == FALSE){
     }
     if (exists("TNs_snv") == TRUE){
         Specificity <- TNs_snv/(TNs_snv + metrics_snv$FP)
-        write.table(data.frame(observed = metrics_snv$observed, expected = metrics_snv$expected, Recall_updated = round(Recall_updated,3), Precision = round(metrics_snv$Precision,3)
+        write.table(data.frame(observed = metrics_snv$observed, expected = metrics_snv$expected, Recall_sequencing = round(Recall_updated,3), Recall = metrics_snv$Recall, Precision = round(metrics_snv$Precision,3)
         , Specificity = round(Specificity,3)
         , FDR = round(FDR_updated,3), F1_score = round(F1_score_updated,3), TPs = as.numeric(dim(TPs_snv)[1]), TPs_in_bam = as.numeric(dim(TPs_to_add)[1]), TPs_updated = as.numeric(dim(TPs_updated)[1]), FPs = as.numeric(dim(FPs_snv)[1]), FNs_not_in_bam = as.numeric(dim(FNs_real)[1]), TNs = TNs_snv)
-        , paste0(opt$out, "metrics_snv_updated.txt")
+        , paste0(opt$out, "metrics_snv_seq_evaluation.txt")
         , sep = "\t"
         , col.names = T
         , row.names = F
         , quote = F)
 
     }else{
-        write.table(data.frame(observed = metrics_snv$observed, expected = metrics_snv$expected, Recall = round(Recall_updated,3), Precision = round(metrics_snv$Precision,3)
+        write.table(data.frame(observed = metrics_snv$observed, expected = metrics_snv$expected, Recall_sequencing = round(Recall_updated,3), Recall = metrics_snv$Recall, Precision = round(metrics_snv$Precision,3)
         , FDR = round(FDR_updated,3), F1_score = round(F1_score_updated,3), TPs = as.numeric(dim(TPs_snv)[1]), , TPs_in_bam = as.numeric(dim(TPs_to_add)[1]), TPs_updated = as.numeric(dim(TPs_updated)[1]), FPs = as.numeric(dim(FPs_snv)[1]), FNs_not_in_bam = as.numeric(dim(FNs_real)[1]), TNs = TNs_snv)
-        , paste0(opt$out, "metrics_snv_updated.txt")
+        , paste0(opt$out, "metrics_snv_seq_evaluation.txt")
         , sep = "\t"
         , col.names = T
         , row.names = F
@@ -224,7 +224,7 @@ if (is.null(pileup_FNs_indel) == FALSE){
   #Create the string for the comparison
   pileup_fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(pileup_FNs_indel$V1, "_"), pileup_FNs_indel$V2), "_"), pileup_FNs_indel$V3),"_"), pileup_FNs_indel$V4), "_"), pileup_FNs_indel$V5)
   fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(FNs_indel$V1, "_"), FNs_indel$V2), "_"), FNs_indel$V3), "_"), FNs_indel$V4), "_"), FNs_indel$V5)
-
+  
   #remove possible duplicates
   string_pileup <- pileup_fns[!duplicated(pileup_fns)]
   string_fns <- fns[!duplicated(fns)]
@@ -306,7 +306,7 @@ if (is.null(pileup_FNs_indel) == FALSE){
   FPs_indel$V4 <- (as.numeric(FPs_indel$V3) - as.numeric(FPs_indel$V2))
   TPs_updated$V4 <- (as.numeric(TPs_updated$V3) - as.numeric(TPs_updated$V2))
 
-  #if difference is 0 it is a indel so, convert it to 1
+  #if difference is 0 it is a SNV so, convert it to 1
   TPs_updated$V4[which(TPs_updated$V4 == 0)] <-  1
 
   FPs_indel$V4[which(FPs_indel$V4 == 0)] <-  1
@@ -326,19 +326,19 @@ if (is.null(pileup_FNs_indel) == FALSE){
 
   if (exists("TNs_indel")== TRUE){
       Specificity <- TNs_indel/(TNs_indel + metrics_indel$FP)
-      write.table(data.frame(observed = metrics_indel$observed, expected = metrics_indel$expected, Recall_updated = round(Recall_updated,3), Precision = round(metrics_indel$Precision,3)
+      write.table(data.frame(observed = metrics_indel$observed, expected = metrics_indel$expected, Recall_sequencing = round(Recall_updated,3), Recall = metrics_indel$Recall,Precision = round(metrics_indel$Precision,3)
       , Specificity = round(Specificity,3)
       , FDR = round(FDR_updated,3), F1_score = round(F1_score_updated,3), TPs = as.numeric(dim(TPs_indel)[1]), TPs_in_bam = as.numeric(dim(TPs_to_add)[1]), TPs_updated = as.numeric(dim(TPs_updated)[1]), FPs = as.numeric(dim(FPs_indel)[1]), FNs_not_in_bam = as.numeric(dim(FNs_real)[1]), TNs = TNs_indel)
-      , paste0(opt$out, "metrics_indel_updated.txt")
+      , paste0(opt$out, "metrics_indel_seq_evaluation.txt")
       , sep = "\t"
       , col.names = T
       , row.names = F
       , quote = F)
 
   }else{
-      write.table(data.frame(observed = metrics_indel$observed, expected = metrics_indel$expected, Recall = round(Recall_updated,3), Precision = round(metrics_indel$Precision,3)
+      write.table(data.frame(observed = metrics_indel$observed, expected = metrics_indel$expected, Recall_sequencing = round(Recall_updated,3), Recall = metrics_indel$Recall, Precision = round(metrics_indel$Precision,3)
       , FDR = round(FDR_updated,3), F1_score = round(F1_score_updated,3), TPs = as.numeric(dim(TPs_indel)[1]), , TPs_in_bam = as.numeric(dim(TPs_to_add)[1]), TPs_updated = as.numeric(dim(TPs_updated)[1]), FPs = as.numeric(dim(FPs_indel)[1]), FNs_not_in_bam = as.numeric(dim(FNs_real)[1]), TNs = TNs_indel)
-      , paste0(opt$out, "metrics_indel_updated.txt")
+      , paste0(opt$out, "metrics_indel_seq_evaluation.txt")
       , sep = "\t"
       , col.names = T
       , row.names = F
