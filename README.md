@@ -33,6 +33,9 @@ python -q $QUERY_VCF \
 For more info on required and not required commands, please type:
 python RecallME.py --help
 
+## Pipeline optimization
+Within conda env start RecallMEapp.Rmd shiny app and start to refine pipeline parameters thresholds.
+
 ## Info and comments
 If you need help or you have comments and tips for improving RecallME, please send a mail to gianluca.vozza@ieo.it
 
