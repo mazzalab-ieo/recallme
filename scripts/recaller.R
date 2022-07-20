@@ -16,9 +16,11 @@ suppressMessages(library("tidyverse"))
 option_list <- list(make_option(c("-g", "--ground_truth"), default = "NA", type = "character", help = "Ground truth file")
     , make_option(c("-v", "--query_vcf"), default = "NA", type = "character", help = "Called VCF to compare")
     , make_option(c("--query_vaf"), default = "NA", type = "character", help = "Set VAF threshold for query VCF")
+    , make_option(c("--query_qd"), default = "NA", type = "character", help = "Set VAF threshold for query VCF")
     , make_option(c("--gt_vaf"), default = "NA", type = "character", help = "Set VAF threshold for ground_truth VCF")
+    , make_option(c("--gt_qd"), default = "NA", type = "character", help = "Set VAF threshold for ground_truth VCF")
     , make_option(c("--out"), default = "NA", type = "character", help = "Output directory")
-    , make_option(c("--caller"), default = "NA", type = "character", help = "Caller which produced the query VCF")                 
+    , make_option(c("--caller"), default = "NA", type = "character", help = "Caller which produced the query VCF")
 )
 
 opt = parse_args(OptionParser(option_list=option_list))
@@ -54,8 +56,14 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt
     dp = sapply(str_split(dp, "DP="), "[[",2)
     dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
 
+    qd = str_match_all(query_vcf$V13, "QD(.*?);")
+    qd = sapply(qd, "[", 1)
+    qd = sapply(str_split(qd, "QD="), "[",2)
+    qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+
     query_vcf$VAF = vaf
     query_vcf$DP = dp
+    query_vcf$QD = qd
 
 }else if(opt$caller == "Deepvariant"){
     vaf = strsplit(as.character(query_vcf$V15), ":")
@@ -66,8 +74,15 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt
     dp = sapply(dp, "[[", 3)
     dp = as.numeric(dp)
 
+    qd = str_match_all(query_vcf$V13, "QD(.*?);")
+    qd = sapply(qd, "[", 1)
+    qd = sapply(str_split(qd, "QD="), "[",2)
+    qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+
     query_vcf$VAF = vaf
     query_vcf$DP = dp
+    query_vcf$QD = qd
+
 }else if (opt$caller == "VarScan2"){
     vaf = strsplit(as.character(query_vcf$V15), ":")
     vaf = sapply(vaf, "[[", 7)
@@ -77,9 +92,15 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt
     dp = strsplit(as.character(query_vcf$V15), ":")
     dp = sapply(dp, "[[", 4)
     dp = as.numeric(dp)
+    
+    qd = str_match_all(query_vcf$V13, "QD(.*?);")
+    qd = sapply(qd, "[", 1)
+    qd = sapply(str_split(qd, "QD="), "[",2)
+    qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
 
     query_vcf$VAF = vaf
     query_vcf$DP = dp
+    query_vcf$QD = qd
 
 }else if (opt$caller == "VarDict"){
     vaf = strsplit(as.character(query_vcf$V15), ":")
@@ -89,15 +110,21 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt
     dp = strsplit(as.character(query_vcf$V15), ":")
     dp = sapply(dp, "[[", 2)
     dp = as.numeric(dp)
+    
+    qd = str_match_all(query_vcf$V13, "QD(.*?);")
+    qd = sapply(qd, "[", 1)
+    qd = sapply(str_split(qd, "QD="), "[",2)
+    qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
 
     query_vcf$VAF = vaf
     query_vcf$DP = dp
+    query_vcf$QD = qd
 
 }
 
 print("VAF and DP extracted and added.")
 
-if (opt$query_vaf == "NA"){
+if (opt$query_vaf == "None"){
     call = query_vcf
 
 }else{
@@ -105,7 +132,15 @@ if (opt$query_vaf == "NA"){
     call = query_vcf
 }
 
-if (opt$gt_vaf == "NA"){
+if (opt$query_qd == "None"){
+    call = query_vcf
+
+}else{
+    query_vcf = query_vcf %>% filter(query_vcf$QD >= as.numeric(opt$query_qd))
+    call = query_vcf
+}
+
+if (opt$gt_vaf == "None"){
     gt = ground_truth
 
 }else{
@@ -163,6 +198,8 @@ if (opt$gt_vaf == "NA"){
     ground_truth = ground_truth %>% filter(ground_truth$VAF >= as.numeric(opt$gt_vaf))
     gt = ground_truth
 }
+#TODO
+#Set workflow for QD threshold on GT VCF
 #create variables for SNVs and for INDELs
 call_snv <- call %>% filter(type == "SNV")
 gt_snv <- gt %>% filter(type == "SNV")

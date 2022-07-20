@@ -1,0 +1,449 @@
+---
+title: "RecallME Web App"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    theme: spacelab
+runtime: shiny
+
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(shinydashboardPlus)
+library(reactable)
+library(tidyverse)
+
+query_reactive_snv <- reactive({
+  query_snv <- read.delim(input$query$datapath, sep="\t", header = F)
+  query_snv
+})
+
+query_reactive_indel <- reactive({
+  query_indel <- read.delim(input$query$datapath, sep="\t", header = F)
+  query_indel
+})
+
+gt_reactive_snv <- reactive({
+  gt_snv <- read.delim(input$gt$datapath, sep="\t", header = F)
+  gt_snv
+})
+
+gt_reactive_indel <- reactive({
+  gt_indel <- read.delim(input$gt$datapath, sep="\t", header = F)
+  gt_indel
+})
+
+'%!in%' <- function(x,y)!('%in%'(x,y))
+metrics_snv_reac <- reactive({
+    query_snv <- query_reactive_snv()
+    gt_snv <- gt_reactive_snv()
+    colnames(query_snv)[ncol(query_snv)] <- "type"
+    colnames(gt_snv)[ncol(gt_snv)] <- "type"
+    query_snv$type <- as.character(query_snv$type)
+    gt_snv$type <- as.character(gt_snv$type)
+    vaf_snv = str_match_all(query_snv$V13, "AF(.*?);")
+    vaf_snv = sapply(vaf_snv, "[[", 1)
+    vaf_snv = sapply(str_split(vaf_snv, "AF="), "[[",2)
+    vaf_snv = as.numeric(sapply(str_split(vaf_snv, ";"), "[[",1))
+    
+    dp_snv = str_match_all(query_snv$V13, "DP(.*?);")
+    dp_snv = sapply(dp_snv, "[[", 1)
+    dp_snv = sapply(str_split(dp_snv, "DP="), "[[",2)
+    dp_snv = as.numeric(sapply(str_split(dp_snv, ";"), "[[",1))
+    
+    qd_snv = str_match_all(query_snv$V13, "QD(.*?);")
+    qd_snv = sapply(qd_snv, "[", 1)
+    qd_snv = sapply(str_split(qd_snv, "QD="), "[",2)
+    qd_snv = as.numeric(sapply(str_split(qd_snv, ";"), "[",1))
+    
+    ao_snv = str_match_all(query_snv$V13, "AO(.*?);")
+    ao_snv = sapply(ao_snv, "[", 1)
+    ao_snv = sapply(str_split(ao_snv, "AO="), "[",2)
+    ao_snv = as.numeric(sapply(str_split(ao_snv, ";"), "[",1))
+    
+    ro_snv = str_match_all(query_snv$V13, "RO(.*?);")
+    ro_snv = sapply(ro_snv, "[", 1)
+    ro_snv = sapply(str_split(ro_snv, "RO="), "[",2)
+    ro_snv = as.numeric(sapply(str_split(ro_snv, ";"), "[",1))
+
+
+    sssb_snv = str_match_all(query_snv$V13, "SSSB(.*?);")
+    sssb_snv = sapply(sssb_snv, "[", 1)
+    sssb_snv = sapply(str_split(sssb_snv, "SSSB="), "[",2)
+    sssb_snv = as.numeric(sapply(str_split(sssb_snv, ";"), "[",1))
+
+    stb_snv = str_match_all(query_snv$V13, "STB(.*?);")
+    stb_snv = sapply(stb_snv, "[", 1)
+    stb_snv = sapply(str_split(stb_snv, "STB="), "[",2)
+    stb_snv = as.numeric(sapply(str_split(stb_snv, ";"), "[",1))
+    
+    stbp_snv = str_match_all(query_snv$V13, "STBP(.*?);")
+    stbp_snv = sapply(stbp_snv, "[", 1)
+    stbp_snv = sapply(str_split(stbp_snv, "STBP="), "[",2)
+    stbp_snv = as.numeric(sapply(str_split(stbp_snv, ";"), "[",1))
+    
+    query_snv$VAF = vaf_snv
+    query_snv$DP = dp_snv
+    query_snv$QD = qd_snv
+    query_snv$AO = ao_snv
+    query_snv$RO = ro_snv
+    query_snv$SSSB = sssb_snv
+    query_snv$STB = stb_snv
+    query_snv$STBP = stbp_snv
+    
+    query_snv = query_snv %>% filter(query_snv$VAF >= as.numeric(input$vaf_snv))
+    call_snv = query_snv
+    
+    query_snv = query_snv %>% filter(query_snv$QD >= as.numeric(input$qd_snv))
+    call_snv = query_snv
+    
+    query_snv = query_snv %>% filter(query_snv$DP >= as.numeric(input$dp_snv))
+    call_snv = query_snv
+    
+    query_snv = query_snv %>% filter(query_snv$AO >= as.numeric(input$ao_snv))
+    call_snv = query_snv
+    
+    query_snv = query_snv %>% filter(query_snv$RO >= as.numeric(input$ro_snv))
+    call_snv = query_snv
+    
+    query_snv = query_snv %>% filter(query_snv$SSSB >= as.numeric(input$sssb_snv))
+    call_snv = query_snv
+    
+    query_snv = query_snv %>% filter(query_snv$STB >= as.numeric(input$stb_snv))
+    call_snv = query_snv
+    
+    query_snv = query_snv %>% filter(query_snv$STBP >= as.numeric(input$stbp_snv))
+    call_snv = query_snv
+    
+    call_snv <- call_snv %>% filter(type == "SNV")
+    gt_snv <- gt_snv %>% filter(type == "SNV")
+    
+   
+    call_snv <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(call_snv$V1, "_"), call_snv$V2), "_"), call_snv$V3), "_"), call_snv$V4), "_"), call_snv$V5)
+    gt_snv <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(gt_snv$V1, "_"), gt_snv$V2), "_"), gt_snv$V3), "_"), gt_snv$V4), "_"), gt_snv$V5)
+    call_snv <- call_snv[!duplicated(call_snv)]
+    gt_snv <- gt_snv[!duplicated(gt_snv)]
+    #create function "not in"
+    '%!in%' <- function(x,y)!('%in%'(x,y))
+    #compute metrics for SNVs
+    Recall_snv <- length(call_snv[call_snv %in% gt_snv])/length(gt_snv)
+    Precision_snv <- length(call_snv[call_snv %in% gt_snv])/(length(call_snv[call_snv %in% gt_snv])+length(call_snv[call_snv %!in% gt_snv]))
+    FDR_snv <- length(call_snv[call_snv %!in% gt_snv])/length(call_snv)
+    F1_score_snv <- 2*(Precision_snv * Recall_snv)/(Precision_snv + Recall_snv)
+    
+    TP_snv <- call_snv[call_snv %in% gt_snv]
+    FP_snv <- call_snv[call_snv %!in% gt_snv]
+    FN_snv <- gt_snv[gt_snv %!in% call_snv]
+    
+    observed_snv <- length(call_snv)
+    expected_snv <- length(gt_snv)
+    metrics_snv <- data.frame(observed = observed_snv, expected = expected_snv, Recall = round(Recall_snv,3), Precision = round(Precision_snv, 3), FDR = round(FDR_snv,3), F1_score = round(F1_score_snv,3), TPs = length(TP_snv), FPs =length(FP_snv), FNs = length(FN_snv))
+    metrics_snv
+})
+
+metrics_indel_reac <- reactive({
+    query_indel <- query_reactive_indel()
+    gt_indel <- gt_reactive_indel()
+    colnames(query_indel)[ncol(query_indel)] <- "type"
+    colnames(gt_indel)[ncol(gt_indel)] <- "type"
+    query_indel$type <- as.character(query_indel$type)
+    gt_indel$type <- as.character(gt_indel$type)
+    vaf_indel = str_match_all(query_indel$V13, "AF(.*?);")
+    vaf_indel = sapply(vaf_indel, "[[", 1)
+    vaf_indel = sapply(str_split(vaf_indel, "AF="), "[[",2)
+    vaf_indel = as.numeric(sapply(str_split(vaf_indel, ";"), "[[",1))
+    
+    dp_indel = str_match_all(query_indel$V13, "DP(.*?);")
+    dp_indel = sapply(dp_indel, "[[", 1)
+    dp_indel = sapply(str_split(dp_indel, "DP="), "[[",2)
+    dp_indel = as.numeric(sapply(str_split(dp_indel, ";"), "[[",1))
+    
+    qd_indel = str_match_all(query_indel$V13, "QD(.*?);")
+    qd_indel = sapply(qd_indel, "[", 1)
+    qd_indel = sapply(str_split(qd_indel, "QD="), "[",2)
+    qd_indel = as.numeric(sapply(str_split(qd_indel, ";"), "[",1))
+    
+    ao_indel = str_match_all(query_indel$V13, "AO(.*?);")
+    ao_indel = sapply(ao_indel, "[", 1)
+    ao_indel = sapply(str_split(ao_indel, "AO="), "[",2)
+    ao_indel = as.numeric(sapply(str_split(ao_indel, ";"), "[",1))
+    
+    ro_indel = str_match_all(query_indel$V13, "RO(.*?);")
+    ro_indel = sapply(ro_indel, "[", 1)
+    ro_indel = sapply(str_split(ro_indel, "RO="), "[",2)
+    ro_indel = as.numeric(sapply(str_split(ro_indel, ";"), "[",1))
+
+
+    sssb_indel = str_match_all(query_indel$V13, "SSSB(.*?);")
+    sssb_indel = sapply(sssb_indel, "[", 1)
+    sssb_indel = sapply(str_split(sssb_indel, "SSSB="), "[",2)
+    sssb_indel = as.numeric(sapply(str_split(sssb_indel, ";"), "[",1))
+
+    stb_indel = str_match_all(query_indel$V13, "STB(.*?);")
+    stb_indel = sapply(stb_indel, "[", 1)
+    stb_indel = sapply(str_split(stb_indel, "STB="), "[",2)
+    stb_indel = as.numeric(sapply(str_split(stb_indel, ";"), "[",1))
+    
+    stbp_indel = str_match_all(query_indel$V13, "STBP(.*?);")
+    stbp_indel = sapply(stbp_indel, "[", 1)
+    stbp_indel = sapply(str_split(stbp_indel, "STBP="), "[",2)
+    stbp_indel = as.numeric(sapply(str_split(stbp_indel, ";"), "[",1))
+    
+    query_indel$VAF = vaf_indel
+    query_indel$DP = dp_indel
+    query_indel$QD = qd_indel
+    query_indel$AO = ao_indel
+    query_indel$RO = ro_indel
+    query_indel$SSSB = sssb_indel
+    query_indel$STB = stb_indel
+    query_indel$STBP = stbp_indel
+    
+    query_indel = query_indel %>% filter(query_indel$VAF >= as.numeric(input$vaf_indel))
+    call_indel = query_indel
+    
+    query_indel = query_indel %>% filter(query_indel$QD >= as.numeric(input$qd_indel))
+    call_indel = query_indel
+    
+    query_indel = query_indel %>% filter(query_indel$DP >= as.numeric(input$dp_indel))
+    call_indel = query_indel
+    
+    query_indel = query_indel %>% filter(query_indel$AO >= as.numeric(input$ao_indel))
+    call_indel = query_indel
+    
+    query_indel = query_indel %>% filter(query_indel$RO >= as.numeric(input$ro_indel))
+    call_indel = query_indel
+    
+    query_indel = query_indel %>% filter(query_indel$SSSB >= as.numeric(input$sssb_indel))
+    call_indel = query_indel
+    
+    query_indel = query_indel %>% filter(query_indel$STB >= as.numeric(input$stb_indel))
+    call_indel = query_indel
+    
+    query_indel = query_indel %>% filter(query_indel$STBP >= as.numeric(input$stbp_indel))
+    call_indel = query_indel
+    
+    call_indel <- call_indel %>% filter(type == "INDEL")
+    gt_indel <- gt_indel %>% filter(type == "INDEL")
+  
+    print("Preparing for comparison...")
+    call_indel <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(call_indel$V1, "_"), call_indel$V2), "_"), call_indel$V3), "_"), call_indel$V4), "_"), call_indel$V5)
+    gt_indel <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(gt_indel$V1, "_"), gt_indel$V2), "_"), gt_indel$V3), "_"), gt_indel$V4), "_"), gt_indel$V5)
+    print("Removing duplicates...")
+    call_indel <- call_indel[!duplicated(call_indel)]
+    gt_indel <- gt_indel[!duplicated(gt_indel)]
+    #create function "not in"
+    '%!in%' <- function(x,y)!('%in%'(x,y))
+    #compute metrics for SNVs
+    Recall_indel <- length(call_indel[call_indel %in% gt_indel])/length(gt_indel)
+    Precision_indel <- length(call_indel[call_indel %in% gt_indel])/(length(call_indel[call_indel %in% gt_indel])+length(call_indel[call_indel %!in% gt_indel]))
+    FDR_indel <- length(call_indel[call_indel %!in% gt_indel])/length(call_indel)
+    F1_score_indel <- 2*(Precision_indel * Recall_indel)/(Precision_indel + Recall_indel)
+    
+    TP_indel <- call_indel[call_indel %in% gt_indel]
+    FP_indel <- call_indel[call_indel %!in% gt_indel]
+    FN_indel <- gt_indel[gt_indel %!in% call_indel]
+    
+    observed_indel <- length(call_indel)
+    expected_indel <- length(gt_indel)
+    metrics_indel <- data.frame(observed = observed_indel, expected = expected_indel, Recall = round(Recall_indel,3), Precision = round(Precision_indel, 3), FDR = round(FDR_indel,3), F1_score = round(F1_score_indel,3), TPs = length(TP_indel), FPs =length(FP_indel), FNs = length(FN_indel))
+    metrics_indel
+})
+
+```
+
+Upload
+=====================================
+
+Row 
+-----------------------------------------------------------------------
+
+```{r}
+tags$h3("RecallME allows users to compare variant calling pipelines and to set right thresholds to the call parameters.")
+tags$br()
+tags$p("Select query and ground truth files that have been split where variants have been classified (i.e. query_name_split_var_type.avinput)")
+tags$br()
+fileInput("query", "Select query AVinput",
+              multiple = FALSE,
+              accept = c("text/avinput",
+                       ".avinput"))
+fileInput("gt", "Select ground truth AVinput",
+                multiple = FALSE,
+                accept = c("text/avinput",
+                          ".avinput"))
+
+
+```
+
+SNVs {data-navmenu="VC Parameters"}
+=======================================================================
+
+Row 
+-----------------------------------------------------------------------
+
+### SNVs
+```{r}
+
+sliderInput(
+    inputId = "vaf_snv",
+    label = "Set VAF threshold",
+    min = 0,
+    max = 1,
+    value = 0.01
+    
+)
+
+sliderInput(
+    inputId = "qd_snv",
+    label = "Set QD threshold",
+    min = 0,
+    max = 100,
+    value = 9
+    
+)
+
+sliderInput(
+    inputId = "dp_snv",
+    label = "Set DP threshold",
+    min = 0,
+    max = 1000,
+    value = 50
+    
+)
+
+sliderInput(
+    inputId = "ao_snv",
+    label = "Set AO threshold",
+    min = 0,
+    max = 10000,
+    value = 50
+    
+)
+
+sliderInput(
+    inputId = "ro_snv",
+    label = "Set RO threshold",
+    min = 0,
+    max = 5000,
+    value = 50
+    
+)
+
+sliderInput(
+    inputId = "sssb_snv",
+    label = "Set SSSB threshold",
+    min = -2,
+    max = 1,
+    value = 0
+    
+)
+
+sliderInput(
+    inputId = "stb_snv",
+    label = "Set STB threshold",
+    min = 0,
+    max = 1,
+    value = 0
+    
+)
+
+sliderInput(
+    inputId = "stbp_snv",
+    label = "Set STBP threshold",
+    min = 0,
+    max = 1,
+    value = 0
+    
+)
+output$snv <- renderReactable(reactable(metrics_snv_reac()))
+reactableOutput("snv")
+```
+
+INDELs {data-navmenu="VC Parameters"}
+=======================================================================
+
+Row 
+-----------------------------------------------------------------------
+
+### INDELs 
+```{r}
+sliderInput(
+    inputId = "vaf_indel",
+    label = "Set VAF threshold",
+    min = 0,
+    max = 1,
+    value = 0.01
+    
+)
+
+sliderInput(
+    inputId = "qd_indel",
+    label = "Set QD threshold",
+    min = 0,
+    max = 100,
+    value = 9
+    
+)
+
+sliderInput(
+    inputId = "dp_indel",
+    label = "Set DP threshold",
+    min = 0,
+    max = 1000,
+    value = 50
+    
+)
+
+sliderInput(
+    inputId = "ao_indel",
+    label = "Set AO threshold",
+    min = 0,
+    max = 10000,
+    value = 50
+    
+)
+
+sliderInput(
+    inputId = "ro_indel",
+    label = "Set RO threshold",
+    min = 0,
+    max = 5000,
+    value = 50
+    
+)
+
+sliderInput(
+    inputId = "sssb_indel",
+    label = "Set SSSB threshold",
+    min = -2,
+    max = 1,
+    value = 0
+    
+)
+
+sliderInput(
+    inputId = "stb_indel",
+    label = "Set STB threshold",
+    min = 0,
+    max = 1,
+    value = 0
+    
+)
+
+sliderInput(
+    inputId = "stbp_indel",
+    label = "Set STBP threshold",
+    min = 0,
+    max = 1,
+    value = 0
+    
+)
+
+output$indel <- renderReactable(reactable(metrics_indel_reac()))
+reactableOutput("indel")
+
+```
+
+

@@ -1,10 +1,10 @@
 ## RecallME: a tool for VCF files comparison and efficient validation method
-RecallME is a condarized python tool for VCF files comparison and variant calling pipelines benchmarking.
+RecallME is a condarized python tool for VCF files comparison and variant calling pipelines benchmarking and optimization.
 
 ## Installation and setup
 Once downloaded the repository, user has to install the conda environment from the yml file by typing the following command
 ```
-conda env create -f RecallME_1.0.yml 
+conda env create -f RecallME_0.1.yml 
 ```
 To run RecallME you need to activate the conda environment and to install ANNOVAR (it requires a license which is free for non-commercial use).
 For more information about ANNOVAR, please visit https://annovar.openbioinformatics.org/en/latest/

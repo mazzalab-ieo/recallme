@@ -26,6 +26,12 @@ def dir_path(string):
         return string
     else:
         raise NotADirectoryError(string)
+#function
+def xstr(s):
+    if s is None:
+        return 'None'
+    else:
+        return str(s)
 
 
 
@@ -49,16 +55,20 @@ parser.add_argument('-g','--ground_truth', type=str,
                     help='ground truth VCF file (or AVinput)', required=True)
 parser.add_argument('-a','--annovar_dir', type=dir_path,
                     help='The path to the annovar directory', required=True)
-parser.add_argument('-o','--out_dir', type=dir_path,
+parser.add_argument('-o','--out_dir', type=str,
                     help='the path to output directory', required=True)
 parser.add_argument('--vaf_query', type=float,
                     help='Set VAF threshold for query VCF (optional)', required=False)
+parser.add_argument('--qd_query', type=float,
+                    help='Set QD threshold for query VCF (optional, for TVC only)', required=False)
 parser.add_argument('--vaf_gt', type=float,
                     help='Set VAF threshold for ground truth VCF (optional)', required=False)
+parser.add_argument('--qd_gt', type=float,
+                    help='Set QD threshold for ground truth VCF (optional, for TVC only)', required=False)
 parser.add_argument('--caller', type=str,
                     help='Caller which produced the query VCF (GATK, TVC, Deepvariant, VarScan2, LoFreq, VarDict, Freebayes)', required=True)
 parser.add_argument('--report', type=str,
-                    help='Produce HTML report (True or False, not required)', required=False)                  
+                    help='Produce HTML report (True or False, optional, for TVC only, default: False)', required=False, default = False) 
 args = parser.parse_args()
 
 #if the caller is not recognized by the tool raise error
@@ -66,15 +76,19 @@ callers_list = ['GATK', 'TVC', 'Deepvariant', 'VarScan2', 'LoFreq', 'VarDict', '
 if args.caller not in callers_list:
     print('Caller not recognized... Please, check if the caller is supported')
     sys.exit()
+if args.caller != 'TVC' and args.report == True:
+    raise Exception("Report or ROC plot are allowed only for TVC caller to date!")
+
 
 #Set folders
 #scripts folder
-script_folder = 'scripts/'
-
+script_folder = os.path.dirname(os.path.realpath(__file__)) + ('/scripts/')
 #annovar folder
 annovar_folder = args.annovar_dir
 
 #Create a folder for Metrics
+if not os.path.exists(args.out_dir):
+   os.mkdir(args.out_dir)
 if not os.path.exists(args.out_dir + "/Metrics"):
    os.mkdir(args.out_dir + "/Metrics")
 
@@ -83,7 +97,7 @@ if not os.path.exists(args.out_dir + "/Metrics"):
 input_vcf = ''
 
 print("Converting VCF files to AVinput files...")
-'''
+
 if args.caller == 'TVC':
     input_vcf = args.query_vcf.split('.')[0] + '_split.vcf'
     command = 'python ' + script_folder + 'vaf_splitter.py ' + args.query_vcf + ' ' + input_vcf
@@ -91,8 +105,7 @@ if args.caller == 'TVC':
     process.wait()
 
 else:
-'''
-input_vcf = args.query_vcf
+    input_vcf = args.query_vcf
 
 if args.query_format == 'VCF':
     #Convert to AVinput query VCF
@@ -118,14 +131,16 @@ process = sp.Popen(command, shell = True)
 process.wait()
 
 #Pass files to recalleR.r script
+'''
 if args.vaf_query == None and args.vaf_gt == None:
     command = 'Rscript ' + script_folder + '/recaller.R -v ' + input_vcf.split('.')[0] + '_var_type.avinput' + ' -g '+ args.ground_truth.split('.')[0] + '_var_type.avinput' + ' --out ' + args.out_dir + '/Metrics/' + ' --caller ' + args.caller
     process = sp.Popen(command, shell = True)
     process.wait()
 else:
-    command = 'Rscript ' + script_folder + '/recaller.R -v ' + input_vcf.split('.')[0] + '_var_type.avinput' + ' -g ' + args.ground_truth.split('.')[0] + '_var_type.avinput' + ' --query_vaf ' + str(args.vaf_query) + ' --gt_vaf ' + str(args.vaf_gt) + ' --out ' + args.out_dir + '/Metrics/' + ' --caller ' + args.caller
-    process = sp.Popen(command, shell = True)
-    process.wait()
+'''
+command = 'Rscript ' + script_folder + '/recaller.R -v ' + input_vcf.split('.')[0] + '_var_type.avinput' + ' -g ' + args.ground_truth.split('.')[0] + '_var_type.avinput' + ' --query_vaf ' + xstr(args.vaf_query) + ' --query_qd ' + xstr(args.qd_query) + ' --gt_vaf ' + xstr(args.vaf_gt) + ' --gt_qd ' + xstr(args.qd_gt) + ' --out ' + args.out_dir + '/Metrics/' + ' --caller ' + args.caller
+process = sp.Popen(command, shell = True)
+process.wait()
 
 print('Metrics generated.')
 #print('Starting mpileup...')
@@ -203,7 +218,7 @@ else:
         print('Tables generated!')
         print('generating ReportME...')
         if args.report == 'True':
-            command = 'Rscript ' + script_folder + 'report_gen.R  ' + input_vcf.split('.')[0] + '_var_type.avinput ' + args.out_dir + '/Metrics/TPs_snv.txt ' + args.out_dir + '/Metrics/TPs_indel.txt ' + args.out_dir + '/Metrics/FPs_snv.txt ' + args.out_dir + '/Metrics/FPs_indel.txt ' + args.out_dir + '/Metrics/FNs_snv.txt ' + args.out_dir + '/Metrics/FNs_indel.txt ' + args.out_dir + '/Metrics/metrics_snv_seq_evaluation.txt ' + args.out_dir +'/Metrics/metrics_indel_seq_evaluation.txt ' + args.caller
+            command = 'Rscript ' + script_folder + 'report_gen.R  ' + script_folder + 'ReportME.Rmd ' + input_vcf.split('.')[0] + '_var_type.avinput ' + args.out_dir + '/Metrics/TPs_snv.txt ' + args.out_dir + '/Metrics/TPs_indel.txt ' + args.out_dir + '/Metrics/FPs_snv.txt ' + args.out_dir + '/Metrics/FPs_indel.txt ' + args.out_dir + '/Metrics/FNs_snv.txt ' + args.out_dir + '/Metrics/FNs_indel.txt ' + args.out_dir + '/Metrics/metrics_snv_seq_evaluation.txt ' + args.out_dir +'/Metrics/metrics_indel_seq_evaluation.txt ' + args.caller
             process = sp.Popen(command, shell=True)
             process.wait()
 

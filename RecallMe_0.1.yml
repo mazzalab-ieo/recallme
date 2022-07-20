@@ -1,15 +1,13 @@
-#This is the yml file for installing the conda env of RecallMe v1.0 on Linux systems
-name: RecallMe_0.1
+name:
 channels:
-  - r
   - bioconda
+  - r
   - defaults
 dependencies:
   - bcftools=1.9=ha228f0b_4
   - bedtools=2.29.2=hc088bd4_0
   - libdeflate=1.0=h14c3975_1
   - _libgcc_mutex=0.1=main
-  - _r-mutex=1.0.0=anacondar_1
   - binutils_impl_linux-64=2.33.1=he6710b0_7
   - binutils_linux-64=2.33.1=h9595d00_15
   - bwidget=1.9.11=1
@@ -65,6 +63,7 @@ dependencies:
   - xz=5.2.5=h7b6447c_0
   - zlib=1.2.11=h7b6447c_3
   - zstd=1.4.5=h9ceee32_0
+  - _r-mutex=1.0.0=anacondar_1
   - r-askpass=1.0=r36h14c3975_0
   - r-assertthat=0.2.1=r36h6115d3f_0
   - r-backports=1.1.4=r36h96ca727_0
@@ -152,4 +151,5 @@ dependencies:
   - r-xfun=0.6=r36h6115d3f_0
   - r-xml2=1.2.0=r36h29659fb_0
   - r-yaml=2.2.0=r36h96ca727_0
+prefix: /hpcnfs/scratch/LM/bioinfo/env/RecallMe_1.0
 

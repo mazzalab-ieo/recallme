@@ -2,7 +2,6 @@
 title: "ReportME"
 output: 
   flexdashboard::flex_dashboard:
-    vertical_layout: scroll
     navbar:
       - { icon: "fa-github", href: "https://github.com/mazzalab-ieo/recallme", align: right}
 params:
@@ -41,14 +40,22 @@ params:
 .navbar-inverse .navbar-form {
   border-color: lightblue;
 }
+.dataTables_scrollBody {
+    height:100px !important;
+    max-height:100px !important;
+}
+.chart-stage-flex {
+    overflow:auto !important;
+}
 </style>
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
 library(tidyverse)
 library(DT)
-library(reactable)
+#library(reactable)
 #library(optparse)
+source("functions.R")
 query <- read.delim(params$query
                     , sep = "\t"
                     , header = F)
@@ -108,17 +115,40 @@ if (params$caller == "GATK" || params$caller == "TVC" || params$caller == "LoFre
   qd = sapply(qd, "[", 1)
   qd = sapply(str_split(qd, "QD="), "[",2)
   qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+
+  ao = str_match_all(tps_snv$V13, "AO(.*?);")
+  ao = sapply(ao, "[", 1)
+  ao = sapply(str_split(ao, "AO="), "[",2)
+  ao = as.numeric(sapply(str_split(ao, ";"), "[",1))
   
-  #stb = str_match_all(tps_snv$V13, "STB(.*?);")
-  #stb = sapply(stb, "[", 1)
-  #stb = sapply(str_split(stb, "STB="), "[",2)
-  #stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+  ro = str_match_all(tps_snv$V13, "RO(.*?);")
+  ro = sapply(ro, "[", 1)
+  ro = sapply(str_split(ro, "RO="), "[",2)
+  ro = as.numeric(sapply(str_split(ro, ";"), "[",1))
+
+  sssb = str_match_all(tps_snv$V13, "SSSB(.*?);")
+  sssb = sapply(sssb, "[", 1)
+  sssb = sapply(str_split(sssb, "SSSB="), "[",2)
+  sssb = as.numeric(sapply(str_split(sssb, ";"), "[",1))
   
-  tps_snv$VAF = vaf
-  tps_snv$DP = dp
-  tps_snv$QD = qd
-  #tps$TYPE = type
-  #tps_snv$STB = stb
+  stb = str_match_all(tps_snv$V13, "STB(.*?);")
+  stb = sapply(stb, "[", 1)
+  stb = sapply(str_split(stb, "STB="), "[",2)
+  stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+
+  stbp = str_match_all(tps_snv$V13, "STBP(.*?);")
+  stbp = sapply(stbp, "[", 1)
+  stbp = sapply(str_split(stbp, "STBP="), "[",2)
+  stbp = as.numeric(sapply(str_split(stbp, ";"), "[",1))
+
+  if(dim(tps_snv)[1] == length(vaf)) tps_snv$VAF = vaf else print("Not same length. Skipping...")
+  if(dim(tps_snv)[1] == length(dp)) tps_snv$DP = dp else print("Not same length. Skipping...")
+  if(dim(tps_snv)[1] == length(qd)) tps_snv$QD = qd else print("Not same length. Skipping...")
+  if(dim(tps_snv)[1] == length(stb)) tps_snv$STB = stb else print("Not same length. Skipping...")
+  if(dim(tps_snv)[1] == length(ao)) tps_snv$AO = ao else print("Not same length. Skipping...")
+  if(dim(tps_snv)[1] == length(ro)) tps_snv$RO = ro else print("Not same length. Skipping...")
+  if(dim(tps_snv)[1] == length(stbp)) tps_snv$STBP = stbp else print("Not same length. Skipping...")
+  if(dim(tps_snv)[1] == length(sssb)) tps_snv$SSSB = sssb else print("Not same length. Skipping...")
   
   vaf = str_match_all(fps_snv$V13, "AF(.*?);")
   vaf = sapply(vaf, "[[", 1)
@@ -134,17 +164,40 @@ if (params$caller == "GATK" || params$caller == "TVC" || params$caller == "LoFre
   qd = sapply(qd, "[", 1)
   qd = sapply(str_split(qd, "QD="), "[",2)
   qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
-  
-  #stb = str_match_all(fps_snv$V13, "STB(.*?);")
-  #stb = sapply(stb, "[", 1)
-  #stb = sapply(str_split(stb, "STB="), "[[",2)
-  #stb = as.numeric(sapply(str_split(stb, ";"), "[[",1))
 
-  fps_snv$VAF = vaf
-  fps_snv$DP = dp
-  fps_snv$QD = qd
-  #fps$TYPE = type
-  #fps_snv$STB = stb
+  ao = str_match_all(fps_snv$V13, "AO(.*?);")
+  ao = sapply(ao, "[", 1)
+  ao = sapply(str_split(ao, "AO="), "[",2)
+  ao = as.numeric(sapply(str_split(ao, ";"), "[",1))
+  
+  ro = str_match_all(fps_snv$V13, "RO(.*?);")
+  ro = sapply(ro, "[", 1)
+  ro = sapply(str_split(ro, "RO="), "[",2)
+  ro = as.numeric(sapply(str_split(ro, ";"), "[",1))
+
+  sssb = str_match_all(fps_snv$V13, "SSSB(.*?);")
+  sssb = sapply(sssb, "[", 1)
+  sssb = sapply(str_split(sssb, "SSSB="), "[",2)
+  sssb = as.numeric(sapply(str_split(sssb, ";"), "[",1))
+  
+  stb = str_match_all(fps_snv$V13, "STB(.*?);")
+  stb = sapply(stb, "[", 1)
+  stb = sapply(str_split(stb, "STB="), "[",2)
+  stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+
+  stbp = str_match_all(fps_snv$V13, "STBP(.*?);")
+  stbp = sapply(stbp, "[", 1)
+  stbp = sapply(str_split(stbp, "STBP="), "[",2)
+  stbp = as.numeric(sapply(str_split(stbp, ";"), "[",1))
+  
+  if(dim(fps_snv)[1] == length(vaf)) fps_snv$VAF = vaf else print("Not same length. Skipping...")
+  if(dim(fps_snv)[1] == length(dp)) fps_snv$DP = dp else print("Not same length. Skipping...")
+  if(dim(fps_snv)[1] == length(qd)) fps_snv$QD = qd else print("Not same length. Skipping...")
+  if(dim(fps_snv)[1] == length(stb)) fps_snv$STB = stb else print("Not same length. Skipping...")
+  if(dim(fps_snv)[1] == length(ao)) fps_snv$AO = ao else print("Not same length. Skipping...")
+  if(dim(fps_snv)[1] == length(ro)) fps_snv$RO = ro else print("Not same length. Skipping...")
+  if(dim(fps_snv)[1] == length(stbp)) fps_snv$STBP = stbp else print("Not same length. Skipping...")
+  if(dim(fps_snv)[1] == length(sssb)) fps_snv$SSSB = sssb else print("Not same length. Skipping...")
   
   query_snv <- query %>% filter(type == "SNV")
   vaf = str_match_all(query_snv$V13, "AF(.*?);")
@@ -162,18 +215,44 @@ if (params$caller == "GATK" || params$caller == "TVC" || params$caller == "LoFre
   qd = sapply(str_split(qd, "QD="), "[",2)
   qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
   
-  #stb = str_match_all(query_snv$V13, "STB(.*?);")
-  #stb = sapply(stb, "[", 1)
-  #stb = sapply(str_split(stb, "STB="), "[",2)
-  #stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+  stb = str_match_all(query_snv$V13, "STB(.*?);")
+  stb = sapply(stb, "[", 1)
+  stb = sapply(str_split(stb, "STB="), "[",2)
+  stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+
+  ao = str_match_all(query_snv$V13, "AO(.*?);")
+  ao = sapply(ao, "[", 1)
+  ao = sapply(str_split(ao, "AO="), "[",2)
+  ao = as.numeric(sapply(str_split(ao, ";"), "[",1))
   
+  ro = str_match_all(query_snv$V13, "RO(.*?);")
+  ro = sapply(ro, "[", 1)
+  ro = sapply(str_split(ro, "RO="), "[",2)
+  ro = as.numeric(sapply(str_split(ro, ";"), "[",1))
+
+  sssb = str_match_all(query_snv$V13, "SSSB(.*?);")
+  sssb = sapply(sssb, "[", 1)
+  sssb = sapply(str_split(sssb, "SSSB="), "[",2)
+  sssb = as.numeric(sapply(str_split(sssb, ";"), "[",1))
   
-  query_snv$VAF = vaf
-  query_snv$DP = dp
-  query_snv$QD = qd
-  #query$TYPE = type
-  #query_snv$STB = stb
+  stb = str_match_all(query_snv$V13, "STB(.*?);")
+  stb = sapply(stb, "[", 1)
+  stb = sapply(str_split(stb, "STB="), "[",2)
+  stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+
+  stbp = str_match_all(query_snv$V13, "STBP(.*?);")
+  stbp = sapply(stbp, "[", 1)
+  stbp = sapply(str_split(stbp, "STBP="), "[",2)
+  stbp = as.numeric(sapply(str_split(stbp, ";"), "[",1))
   
+  if(dim(query_snv)[1] == length(vaf)) query_snv$VAF = vaf else print("Not same length. Skipping...")
+  if(dim(query_snv)[1] == length(dp)) query_snv$DP = dp else print("Not same length. Skipping...")
+  if(dim(query_snv)[1] == length(qd)) query_snv$QD = qd else print("Not same length. Skipping...")
+  if(dim(query_snv)[1] == length(stb)) query_snv$STB = stb else print("Not same length. Skipping...")
+  if(dim(query_snv)[1] == length(ao)) query_snv$AO = ao else print("Not same length. Skipping...")
+  if(dim(query_snv)[1] == length(ro)) query_snv$RO = ro else print("Not same length. Skipping...")
+  if(dim(query_snv)[1] == length(stbp)) query_snv$STBP = stbp else print("Not same length. Skipping...")
+  if(dim(query_snv)[1] == length(sssb)) query_snv$SSSB = sssb else print("Not same length. Skipping...") 
   
   #INDELs metrics
   tps_indel <- dplyr::left_join(TP_indel, query, by = c("V1", "V2", "V3", "V4", "V5"))
@@ -198,16 +277,44 @@ if (params$caller == "GATK" || params$caller == "TVC" || params$caller == "LoFre
   qd = sapply(str_split(qd, "QD="), "[",2)
   qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
   
-  #stb = str_match_all(tps_indel$V13, "STB(.*?);")
-  #stb = sapply(stb, "[", 1)
-  #stb = sapply(str_split(stb, "STB="), "[",2)
-  #stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+  stb = str_match_all(tps_indel$V13, "STB(.*?);")
+  stb = sapply(stb, "[", 1)
+  stb = sapply(str_split(stb, "STB="), "[",2)
+  stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+
+  ao = str_match_all(tps_indel$V13, "AO(.*?);")
+  ao = sapply(ao, "[", 1)
+  ao = sapply(str_split(ao, "AO="), "[",2)
+  ao = as.numeric(sapply(str_split(ao, ";"), "[",1))
   
-  tps_indel$VAF = vaf
-  tps_indel$DP = dp
-  tps_indel$QD = qd
-  #tps$TYPE = type
-  #tps_indel$STB = stb
+  ro = str_match_all(tps_indel$V13, "RO(.*?);")
+  ro = sapply(ro, "[", 1)
+  ro = sapply(str_split(ro, "RO="), "[",2)
+  ro = as.numeric(sapply(str_split(ro, ";"), "[",1))
+
+  sssb = str_match_all(tps_indel$V13, "SSSB(.*?);")
+  sssb = sapply(sssb, "[", 1)
+  sssb = sapply(str_split(sssb, "SSSB="), "[",2)
+  sssb = as.numeric(sapply(str_split(sssb, ";"), "[",1))
+  
+  stb = str_match_all(tps_indel$V13, "STB(.*?);")
+  stb = sapply(stb, "[", 1)
+  stb = sapply(str_split(stb, "STB="), "[",2)
+  stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+
+  stbp = str_match_all(tps_indel$V13, "STBP(.*?);")
+  stbp = sapply(stbp, "[", 1)
+  stbp = sapply(str_split(stbp, "STBP="), "[",2)
+  stbp = as.numeric(sapply(str_split(stbp, ";"), "[",1))
+  
+  if(dim(tps_indel)[1] == length(vaf)) tps_indel$VAF = vaf else print("Not same length. Skipping...")
+  if(dim(tps_indel)[1] == length(dp)) tps_indel$DP = dp else print("Not same length. Skipping...")
+  if(dim(tps_indel)[1] == length(qd)) tps_indel$QD = qd else print("Not same length. Skipping...")
+  if(dim(tps_indel)[1] == length(stb)) tps_indel$STB = stb else print("Not same length. Skipping...")
+  if(dim(tps_indel)[1] == length(ao)) tps_indel$AO = ao else print("Not same length. Skipping...")
+  if(dim(tps_indel)[1] == length(ro)) tps_indel$RO = ro else print("Not same length. Skipping...")
+  if(dim(tps_indel)[1] == length(stbp)) tps_indel$STBP = stbp else print("Not same length. Skipping...")
+  if(dim(tps_indel)[1] == length(sssb)) tps_indel$SSSB = sssb else print("Not same length. Skipping...")
   
   vaf = str_match_all(fps_indel$V13, "AF(.*?);")
   vaf = sapply(vaf, "[[", 1)
@@ -224,16 +331,44 @@ if (params$caller == "GATK" || params$caller == "TVC" || params$caller == "LoFre
   qd = sapply(str_split(qd, "QD="), "[",2)
   qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
   
-  #stb = str_match_all(fps_indel$V13, "STB(.*?);")
-  #stb = sapply(stb, "[", 1)
-  #stb = sapply(str_split(stb, "STB="), "[[",2)
-  #stb = as.numeric(sapply(str_split(stb, ";"), "[[",1))
+  stb = str_match_all(fps_indel$V13, "STB(.*?);")
+  stb = sapply(stb, "[", 1)
+  stb = sapply(str_split(stb, "STB="), "[",2)
+  stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+
+  ao = str_match_all(fps_snv$V13, "AO(.*?);")
+  ao = sapply(ao, "[", 1)
+  ao = sapply(str_split(ao, "AO="), "[",2)
+  ao = as.numeric(sapply(str_split(ao, ";"), "[",1))
   
-  fps_indel$VAF = vaf
-  fps_indel$DP = dp
-  fps_indel$QD = qd
-  #fps$TYPE = type
-  #fps_indel$STB = stb
+  ro = str_match_all(fps_snv$V13, "RO(.*?);")
+  ro = sapply(ro, "[", 1)
+  ro = sapply(str_split(ro, "RO="), "[",2)
+  ro = as.numeric(sapply(str_split(ro, ";"), "[",1))
+
+  sssb = str_match_all(fps_indel$V13, "SSSB(.*?);")
+  sssb = sapply(sssb, "[", 1)
+  sssb = sapply(str_split(sssb, "SSSB="), "[",2)
+  sssb = as.numeric(sapply(str_split(sssb, ";"), "[",1))
+  
+  stb = str_match_all(fps_indel$V13, "STB(.*?);")
+  stb = sapply(stb, "[", 1)
+  stb = sapply(str_split(stb, "STB="), "[",2)
+  stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+
+  stbp = str_match_all(fps_indel$V13, "STBP(.*?);")
+  stbp = sapply(stbp, "[", 1)
+  stbp = sapply(str_split(stbp, "STBP="), "[",2)
+  stbp = as.numeric(sapply(str_split(stbp, ";"), "[",1))
+  
+  if(dim(fps_indel)[1] == length(vaf)) fps_indel$VAF = vaf else print("Not same length. Skipping...")
+  if(dim(fps_indel)[1] == length(dp)) fps_indel$DP = dp else print("Not same length. Skipping...")
+  if(dim(fps_indel)[1] == length(qd)) fps_indel$QD = qd else print("Not same length. Skipping...")
+  if(dim(fps_indel)[1] == length(stb)) fps_indel$STB = stb else print("Not same length. Skipping...")
+  if(dim(fps_indel)[1] == length(ao)) fps_indel$AO = ao else print("Not same length. Skipping...")
+  if(dim(fps_indel)[1] == length(ro)) fps_indel$RO = ro else print("Not same length. Skipping...")
+  if(dim(fps_indel)[1] == length(stbp)) fps_indel$STBP = stbp else print("Not same length. Skipping...")
+  if(dim(fps_indel)[1] == length(sssb)) fps_indel$SSSB = sssb else print("Not same length. Skipping...")
   
   query_indel <- query %>% filter(type == "INDEL")
   vaf = str_match_all(query_indel$V13, "AF(.*?);")
@@ -251,22 +386,67 @@ if (params$caller == "GATK" || params$caller == "TVC" || params$caller == "LoFre
   qd = sapply(str_split(qd, "QD="), "[",2)
   qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
   
-  #stb = str_match_all(query_indel$V13, "STB(.*?);")
-  #stb = sapply(stb, "[", 1)
-  #stb = sapply(str_split(stb, "STB="), "[",2)
-  #stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
-  
-  
-  query_indel$VAF = vaf
-  query_indel$DP = dp
-  query_indel$QD = qd
-  #query$TYPE = type
-  #query_indel$STB = stb
-}
+  stb = str_match_all(query_indel$V13, "STB(.*?);")
+  stb = sapply(stb, "[", 1)
+  stb = sapply(str_split(stb, "stb="), "[",2)
+  stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
 
+  ao = str_match_all(query_snv$V13, "AO(.*?);")
+  ao = sapply(ao, "[", 1)
+  ao = sapply(str_split(ao, "AO="), "[",2)
+  ao = as.numeric(sapply(str_split(ao, ";"), "[",1))
+  
+  ro = str_match_all(query_snv$V13, "RO(.*?);")
+  ro = sapply(ro, "[", 1)
+  ro = sapply(str_split(ro, "RO="), "[",2)
+  ro = as.numeric(sapply(str_split(ro, ";"), "[",1))
+
+  sssb = str_match_all(query_snv$V13, "SSSB(.*?);")
+  sssb = sapply(sssb, "[", 1)
+  sssb = sapply(str_split(sssb, "SSSB="), "[",2)
+  sssb = as.numeric(sapply(str_split(sssb, ";"), "[",1))
+  
+  stb = str_match_all(query_snv$V13, "STB(.*?);")
+  stb = sapply(stb, "[", 1)
+  stb = sapply(str_split(stb, "STB="), "[",2)
+  stb = as.numeric(sapply(str_split(stb, ";"), "[",1))
+
+  stbp = str_match_all(query_snv$V13, "STBP(.*?);")
+  stbp = sapply(stbp, "[", 1)
+  stbp = sapply(str_split(stbp, "STBP="), "[",2)
+  stbp = as.numeric(sapply(str_split(stbp, ";"), "[",1))
+
+  if(dim(query_indel)[1] == length(vaf)) query_indel$VAF = vaf else print("Not same length. Skipping...")
+  if(dim(query_indel)[1] == length(dp)) query_indel$DP = dp else print("Not same length. Skipping...")
+  if(dim(query_indel)[1] == length(qd)) query_indel$QD = qd else print("Not same length. Skipping...")
+  if(dim(query_indel)[1] == length(stb)) query_indel$STB = stb else print("Not same length. Skipping...")
+  if(dim(query_indel)[1] == length(ao)) query_indel$AO = ao else print("Not same length. Skipping...")
+  if(dim(query_indel)[1] == length(ro)) query_indel$RO = ro else print("Not same length. Skipping...")
+  if(dim(query_indel)[1] == length(stbp)) query_indel$STBP = stbp else print("Not same length. Skipping...")
+  if(dim(query_indel)[1] == length(sssb)) query_indel$SSSB = sssb else print("Not same length. Skipping...") 
+    
+}
+tps_snv$class <- rep("TP", nrow(tps_snv))
+tps_indel$class <- rep("TP", nrow(tps_indel))
+fps_snv$class <- rep("FP", nrow(fps_snv))
+fps_indel$class <- rep("FP", nrow(fps_indel))
+#check if dataframes for TPs and FPs have same number of cols and then rowbind them
+if (length(colnames(tps_snv)) < length(colnames(fps_snv))){
+  fps_snv = fps_snv[,colnames(tps_snv)]
+}else{
+  tps_snv = tps_snv[,colnames(fps_snv)]
+}
+snvs <- rbind(tps_snv, fps_snv)
+
+if (length(colnames(tps_indel)) < length(colnames(fps_indel))){
+  fps_indel = fps_indel[,colnames(tps_indel)]
+}else{
+  tps_indel = tps_indel[,colnames(fps_indel)]
+}
+indels <- rbind(tps_indel, fps_indel)
 ```
 
-Plots SNVs
+SNVs {data-navmenu="Plots"}
 =======================================================================
 
 Row 
@@ -391,7 +571,7 @@ p2
 Row 
 -----------------------------------------------------------------------
 
-Plots INDELs
+INDELs {data-navmenu="Plots"}
 =======================================================================
 
 Row 
@@ -512,13 +692,10 @@ p2
 
 ```
 
-Row 
------------------------------------------------------------------------
-
-Tables - SNVs {data-orientation=rows}
+SNVs  {data-navmenu="Tables"}
 =======================================================================
 
-Row 
+Row {data-height=150}
 -----------------------------------------------------------------------
 
 ### Sample INFO - SNVs
@@ -542,50 +719,45 @@ n_fns_snv<- dim(fns_snv)[1]
 valueBox(n_fns_snv,caption = "FNs", color = "danger")
 ```
 
-Row 
------------------------------------------------------------------------
-
 ### Metrics
 
 ```{r}
-reactable(as.data.frame(metrics_bioinfo_snv),wrap = F, filterable = T)
+#reactable(as.data.frame(metrics_bioinfo_snv),wrap = F, filterable = T)
+datatable(as.data.frame(metrics_bioinfo_snv), filter = "none", rownames = FALSE)
 ```
 
-Row 
+Column
 -----------------------------------------------------------------------
 
 ### TPs variants
 
 ```{r}
 colnames(tps_snv) <- c("Chr", "Start", "End", "Ref", "Alt", "Chr_VCF", "Pos", ".", "Ref_VCF", "Alt_VCF", "Quality", "Filter", "Info 1", "Info 2", "Info 3", "Type", "VAF", "DP", "QD" )
-reactable(as.data.frame(tps_snv),wrap = F, filterable = T)
+#reactable(as.data.frame(tps_snv),wrap = F, filterable = T)
+datatable(as.data.frame(tps_snv), filter = "top", rownames = FALSE)
 ```
-
-Row 
------------------------------------------------------------------------
 
 ### FPs variants
 
 ```{r}
 colnames(fps_snv) <- c("Chr", "Start", "End", "Ref", "Alt", "Chr_VCF", "Pos", ".", "Ref_VCF", "Alt_VCF", "Quality", "Filter", "Info 1", "Info 2", "Info 3", "Type", "VAF", "DP", "QD" )
-reactable(as.data.frame(fps_snv),wrap = F, filterable = T)
+#reactable(as.data.frame(fps_snv),wrap = F, filterable = T)
+datatable(as.data.frame(fps_snv), filter = "top", rownames = FALSE)
 ```
-
-Row 
------------------------------------------------------------------------
 
 ### FNs variants
 
 ```{r}
 fns_snv <- fns_snv[,c(1,2,3,4,5)]
 colnames(fns_snv) <- c("Chr", "Start", "End", "Ref", "Alt")
-reactable(as.data.frame(fns_snv),wrap = F, filterable = T)
+#reactable(as.data.frame(fns_snv),wrap = F, filterable = T)
+datatable(as.data.frame(fns_snv), filter = "top", rownames = FALSE)
 ```
 
-Tables - INDELs {data-orientation=rows}
+INDELs {data-navmenu="Tables"}
 =======================================================================
 
-Row 
+Row {data-height=150}
 -----------------------------------------------------------------------
 
 ### Sample INFO - INDELs
@@ -609,42 +781,386 @@ n_fns_indel <- dim(fns_indel)[1]
 valueBox(n_fns_indel,caption = "FNs", color = "danger")
 ```
 
-Row 
------------------------------------------------------------------------
-
 ### Metrics
 
 ```{r}
-reactable(as.data.frame(metrics_bioinfo_indel),wrap = F, filterable = T)
+#reactable(as.data.frame(metrics_bioinfo_indel),wrap = F, filterable = T)
+datatable(as.data.frame(metrics_bioinfo_indel), filter = "none", rownames = FALSE)
 ```
 
-Row 
+Column 
 -----------------------------------------------------------------------
 
 ### TPs variants
 
 ```{r}
 colnames(tps_indel) <- c("Chr", "Start", "End", "Ref", "Alt", "Chr_VCF", "Pos", ".", "Ref_VCF", "Alt_VCF", "Quality", "Filter", "Info 1", "Info 2", "Info 3", "Type", "VAF", "DP", "QD" )
-reactable(as.data.frame(tps_indel),wrap = F, filterable = T)
+#reactable(as.data.frame(tps_indel),wrap = F, filterable = T)
+datatable(as.data.frame(tps_indel), filter = "top", rownames = FALSE)
 ```
-
-Row 
------------------------------------------------------------------------
 
 ### FPs variants
 
 ```{r}
 colnames(fps_indel) <- c("Chr", "Start", "End", "Ref", "Alt", "Chr_VCF", "Pos", ".", "Ref_VCF", "Alt_VCF", "Quality", "Filter", "Info 1", "Info 2", "Info 3", "Type", "VAF", "DP", "QD" )
-reactable(as.data.frame(fps_indel),wrap = F, filterable = T)
+#reactable(as.data.frame(fps_indel),wrap = F, filterable = T)
+datatable(as.data.frame(fps_indel), filter = "top", rownames = FALSE)
 ```
-
-Row 
------------------------------------------------------------------------
 
 ### FNs variants
 
 ```{r}
 fns_indel <- fns_snv[,c(1,2,3,4,5)]
 colnames(fns_indel) <- c("Chr", "Start", "End", "Ref", "Alt")
-reactable(as.data.frame(fns_indel),wrap = F, filterable = T)
+#reactable(as.data.frame(fns_indel),wrap = F, filterable = T)
+datatable(as.data.frame(fns_indel), filter = "top", rownames = FALSE)
 ```
+
+Params similarity SNVs {data-navmenu="Tables"}
+=======================================================================
+
+Column
+-----------------------------------------------------------------------
+
+### VAF
+
+```{r}
+if ("VAF" %in% colnames(tps_snv) & "VAF" %in% colnames(fps_snv)){
+  jaccard_idx = jaccard(tps_snv$VAF, fps_snv$VAF)
+  if (length(tps_snv$VAF) >= length(fps_snv$VAF)){
+    cosine_sim = cosine_similarity(sample(tps_snv$VAF,length(fps_snv$VAF)), fps_snv$VAF)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("VAF data not available")
+}
+
+```
+
+### DP
+
+```{r}
+if ("DP" %in% colnames(tps_snv) & "DP" %in% colnames(fps_snv)){
+  jaccard_idx = jaccard(tps_snv$DP, fps_snv$DP)
+  if (length(tps_snv$DP) >= length(fps_snv$DP)){
+    cosine_sim = cosine_similarity(sample(tps_snv$DP,length(fps_snv$DP)), fps_snv$DP)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("DP data not available")
+}
+```
+
+### QD
+
+```{r}
+if ("QD" %in% colnames(tps_snv) & "QD" %in% colnames(fps_snv)){
+  jaccard_idx = jaccard(tps_snv$QD, fps_snv$QD)
+  if (length(tps_snv$QD) >= length(fps_snv$QD)){
+    cosine_sim = cosine_similarity(sample(tps_snv$QD,length(fps_snv$QD)), fps_snv$QD)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("QD data not available")
+}
+```
+
+Column
+-----------------------------------------------------------------------
+
+### AO
+
+```{r}
+if ("AO" %in% colnames(tps_snv) & "AO" %in% colnames(fps_snv)){
+  jaccard_idx = jaccard(tps_snv$AO, fps_snv$AO)
+  if (length(tps_snv$AO) >= length(fps_snv$AO)){
+    cosine_sim = cosine_similarity(sample(tps_snv$AO,length(fps_snv$AO)), fps_snv$AO)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("AO data not available")
+}
+```
+
+### RO
+
+```{r}
+if ("RO" %in% colnames(tps_snv) & "RO" %in% colnames(fps_snv)){
+  jaccard_idx = jaccard(tps_snv$RO, fps_snv$RO)
+  if (length(tps_snv$RO) >= length(fps_snv$RO)){
+    cosine_sim = cosine_similarity(sample(tps_snv$RO,length(fps_snv$RO)), fps_snv$RO)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("RO data not available")
+}
+```
+
+### STB
+
+```{r}
+if ("STB" %in% colnames(tps_snv) & "STB" %in% colnames(fps_snv)){  
+  jaccard_idx = jaccard(tps_snv$STB, fps_snv$STB)
+  if (length(tps_snv$STB) >= length(fps_snv$STB)){
+    cosine_sim = cosine_similarity(sample(tps_snv$STB,length(fps_snv$STB)), fps_snv$STB)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+  }else{
+  print("STB data not available")
+}
+```
+
+### STBP
+
+```{r}
+if ("STBP" %in% colnames(tps_snv) & "STBP" %in% colnames(fps_snv)){
+  jaccard_idx = jaccard(tps_snv$STBP, fps_snv$STBP)
+  if (length(tps_snv$STBP) >= length(fps_snv$STBP)){
+    cosine_sim = cosine_similarity(sample(tps_snv$STBP,length(fps_snv$STBP)), fps_snv$STBP)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("STBP data not available")
+}
+```
+
+### SSSB
+
+```{r}
+if ("SSSB" %in% colnames(tps_snv) & "SSSB" %in% colnames(fps_snv)){
+  jaccard_idx = jaccard(tps_snv$SSSB, fps_snv$SSSB)
+  if (length(tps_snv$SSSB) >= length(fps_snv$SSSB)){
+    cosine_sim = cosine_similarity(sample(tps_snv$SSSB,length(fps_snv$SSSB)), fps_snv$SSSB)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("SSSB data not available")
+}
+```
+
+Params similarity INDELs {data-navmenu="Tables"}
+=======================================================================
+
+Column
+-----------------------------------------------------------------------
+
+### VAF
+
+```{r}
+if ("VAF" %in% colnames(tps_indel) & "VAF" %in% colnames(fps_indel)){
+  jaccard_idx = jaccard(tps_indel$VAF, fps_indel$VAF)
+  if (length(tps_indel$VAF) >= length(fps_indel$VAF)){
+    cosine_sim = cosine_similarity(sample(tps_indel$VAF,length(fps_indel$VAF)), fps_indel$VAF)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("VAF data not available")
+}
+```
+
+### DP
+
+```{r}
+if ("DP" %in% colnames(tps_indel) & "DP" %in% colnames(fps_indel)){
+  jaccard_idx = jaccard(tps_indel$DP, fps_indel$DP)
+  if (length(tps_indel$DP) >= length(fps_indel$DP)){
+    cosine_sim = cosine_similarity(sample(tps_indel$DP,length(fps_indel$DP)), fps_indel$DP)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("DP data not available")
+}
+```
+
+### QD
+
+```{r}
+if ("QD" %in% colnames(tps_indel) & "QD" %in% colnames(fps_indel)){
+  jaccard_idx = jaccard(tps_indel$QD, fps_indel$QD)
+  if (length(tps_indel$QD) >= length(fps_indel$QD)){
+    cosine_sim = cosine_similarity(sample(tps_indel$QD,length(fps_indel$QD)), fps_indel$QD)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("QD data not available")
+}
+```
+
+Column
+-----------------------------------------------------------------------
+
+### AO
+
+```{r}
+if ("AO" %in% colnames(tps_indel) & "AO" %in% colnames(fps_indel)){
+  jaccard_idx = jaccard(tps_indel$AO, fps_indel$AO)
+  if (length(tps_indel$AO) >= length(fps_indel$AO)){
+    cosine_sim = cosine_similarity(sample(tps_indel$AO,length(fps_indel$AO)), fps_indel$AO)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("AO data not available")
+}
+```
+
+### RO
+
+```{r}
+if ("RO" %in% colnames(tps_indel) & "RO" %in% colnames(fps_indel)){
+  jaccard_idx = jaccard(tps_indel$RO, fps_indel$RO)
+  if (length(tps_indel$RO) >= length(fps_indel$RO)){
+    cosine_sim = cosine_similarity(sample(tps_indel$RO,length(fps_indel$RO)), fps_indel$RO)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("RO data not available")
+}
+```
+
+### STB
+
+```{r}
+if ("STB" %in% colnames(tps_indel) & "STB" %in% colnames(fps_indel)){
+  jaccard_idx = jaccard(tps_indel$STB, fps_indel$STB)
+  if (length(tps_indel$STB) >= length(fps_indel$STB)){
+    cosine_sim = cosine_similarity(sample(tps_indel$STB,length(fps_indel$STB)), fps_indel$STB)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("STB data not available")
+}
+```
+
+### STBP
+
+```{r}
+if ("STBP" %in% colnames(tps_indel) & "STBP" %in% colnames(fps_indel)){
+  jaccard_idx = jaccard(tps_indel$STBP, fps_indel$STBP)
+  if (length(tps_indel$STBP) >= length(fps_indel$STBP)){
+    cosine_sim = cosine_similarity(sample(tps_indel$STBP,length(fps_indel$STBP)), fps_indel$STBP)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("STBP data not available")
+}
+```
+
+### SSSB
+
+```{r}
+if ("SSSB" %in% colnames(tps_indel) & "SSSB" %in% colnames(fps_indel)){
+  jaccard_idx = jaccard(tps_indel$SSSB, fps_indel$SSSB)
+  if (length(tps_indel$SSSB) >= length(fps_indel$SSSB)){
+    cosine_sim = cosine_similarity(sample(tps_indel$SSSB,length(fps_indel$SSSB)), fps_indel$SSSB)
+  }else{
+    cosine_sim = "Not available"
+  }
+  parameters = data.frame(Jaccard_index = jaccard_idx, Cosine_similarity = cosine_sim)
+  datatable(as.data.frame(parameters), filter = "top", rownames = FALSE)
+}else{
+  print("SSSB data not available")
+}
+```
+
+3D plots {data-orientation=column}
+=======================================================================
+
+Column
+-----------------------------------------------------------------------
+
+### SNVs
+
+```{r}
+axx <- list(
+  title = "VAF"
+)
+
+axy <- list(
+  title = "QD"
+)
+
+axz <- list(
+  title = "DP"
+)
+fig <- plotly::plot_ly(snvs, x = ~VAF, y = ~QD, z = ~DP, color = ~class, colors = c('#BF382A', '#00FF00'),hoverinfo = 'text',
+        text = ~paste(class,
+                      '</br></br>',"VAF: ", VAF,'</br></br>',"QD: ", QD,'</br></br>', "DP: ",DP)) 
+fig <- fig %>% add_markers()
+fig <- fig %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
+
+
+fig
+
+```
+
+Column 
+-----------------------------------------------------------------------
+
+### INDELs
+
+```{r}
+axx <- list(
+  title = "VAF"
+)
+
+axy <- list(
+  title = "QD"
+)
+
+axz <- list(
+  title = "DP"
+)
+fig <- plotly::plot_ly(indels, x = ~VAF, y = ~QD, z = ~DP, color = ~class, colors = c('#BF382A', '#00FF00'),hoverinfo = 'text',
+        text = ~paste(class,
+                      '</br></br>',"VAF: ", VAF,'</br></br>',"QD: ", QD,'</br></br>', "DP: ",DP)) 
+fig <- fig %>% add_markers()
+fig <- fig %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
+fig
+
+```
+

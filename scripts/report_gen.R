@@ -13,15 +13,15 @@ if (require("plotly") == FALSE){
     install.packages("plotly", repos='http://cran.us.r-project.org', dependencies = TRUE)
 }
 args = commandArgs(trailingOnly=TRUE)
-rmarkdown::render(paste0(getwd(),"/scripts/ReportME.Rmd"), params = list(query = args[1],
-TP_snv = args[2],
-TP_indels = args[3],
-FP_snv = args[4],
-FP_indels = args[5],
-FN_snv = args[6],
-FN_indels = args[7],
-metrics_snv = args[8],
-metrics_indel = args[9],
-caller = args[10]
+rmarkdown::render(args[1], params = list(query = args[2],
+TP_snv = args[3],
+TP_indels = args[4],
+FP_snv = args[5],
+FP_indels = args[6],
+FN_snv = args[7],
+FN_indels = args[8],
+metrics_snv = args[9],
+metrics_indel = args[10],
+caller = args[11]
 ), "flex_dashboard")
 
