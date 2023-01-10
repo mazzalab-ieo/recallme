@@ -56,7 +56,7 @@ parser.add_argument('-g','--ground_truth', type=str,
 parser.add_argument('-a','--annovar_dir', type=dir_path,
                     help='The path to the annovar directory', required=True)
 parser.add_argument('-o','--out_dir', type=str,
-                    help='the path to output directory', required=True)
+                    help='the path to output directory', required=True)               
 parser.add_argument('--vaf_query', type=float,
                     help='Set VAF threshold for query VCF (optional)', required=False)
 parser.add_argument('--qd_query', type=float,
@@ -78,6 +78,8 @@ if args.caller not in callers_list:
     sys.exit()
 if args.caller != 'TVC' and args.report == True:
     raise Exception("Report or ROC plot are allowed only for TVC caller to date!")
+if args.report == True:
+    raise Exception("Report is not available anymore. Please, use the shiny application instead.")
 
 
 #Set folders
@@ -97,7 +99,7 @@ if not os.path.exists(args.out_dir + "/Metrics"):
 input_vcf = ''
 
 print("Converting VCF files to AVinput files...")
-
+##split multialleic variants and their parameters
 if args.caller == 'TVC':
     input_vcf = args.query_vcf.split('.')[0] + '_split.vcf'
     command = 'python ' + script_folder + 'vaf_splitter.py ' + args.query_vcf + ' ' + input_vcf
@@ -125,7 +127,7 @@ else:
 
 print('Defining variant types...')
 
-## variant types definition
+## variant types definition (add information to variants as if they are SNV or INDEL)
 command = 'python ' + script_folder + 'variant_type.py --query ' + input_vcf.split('.')[0] + '.avinput' + ' --gt ' + args.ground_truth.split('.')[0] + '.avinput'
 process = sp.Popen(command, shell = True)
 process.wait()
@@ -144,23 +146,49 @@ process.wait()
 
 print('Metrics generated.')
 #print('Starting mpileup...')
+###TODO
+##substitution of mpileup function
 
 #FNs for mpileup on snv
 if args.bam == None:
     pass
 else:
     if os.path.isfile(args.out_dir +  '/Metrics/' + 'FNs_snv.txt'):
+        
         command = 'awk \'{print $1,$2,$3}\' ' + args.out_dir + '/Metrics/' +  'FNs_snv.txt > ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt'
         process = sp.Popen(command, shell = True)
         process.wait()
+        
+        '''
+        command = 'awk \'{print $1,$2,$3}\' ' + args.out_dir + '/Metrics/' + 'FNs_snv.txt > ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt'
+        process = sp.Popen(command, shell = True)
+        process.wait()
+        #add bam_readcount step
+        #command = 'singularity exec ' + script_folder + 'bam-readcount_latest.sif ' + ' -B ' + args.out_dir + ',' + os.path.dirname(args.fasta) + ',' + os.path.dirname(args.bam) + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
+        command = 'singularity exec ' + ' -B /hpcnfs/ ' + script_folder + 'bam-readcount_latest.sif ' + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_snv.txt '
+        process = sp.Popen(command, shell=True)
+        process.wait()
+        #parse bam readcount output > ' + args.out_dir + 'query_indel_parsed.txt'
+        command = 'python ' + script_folder + 'brc_parser.py ' + args.out_dir + 'query_snv.txt'
+        process = sp.Popen(command, shell=True)
+        process.wait()
+
+        #convert parsed output to avinput-like file
+        command = 'Rscript ' + script_folder + 'av_converter_snv.R ' + args.out_dir + 'query_snv_parsed.csv ' + args.out_dir + 'query_pileup_snv_converted.avinput '
+        process = sp.Popen(command, shell=True)
+        process.wait()
+        '''
         #mpileup for snv
         command = 'bcftools mpileup -Ou -T ' + args.out_dir + '/Metrics/FNs_snv_for_pileup.txt' + ' --gvcf 0 -f' + args.fasta + ' ' + args.bam + ' | bcftools call -m -Ov -o ' + args.out_dir + 'query_pileup_snv.vcf'
         process = sp.Popen(command, shell=True)
         process.wait()
+        
         #annovar conversion SNVs
         command = 'perl ' + annovar_folder + '/convert2annovar.pl -format vcf4 ' + args.out_dir + '/query_pileup_snv.vcf --outfile ' + args.out_dir + '/query_pileup_snv.avinput --includeinfo'
         process = sp.Popen(command, shell=True)
         process.wait()
+    
+        '''
     #FNs for mpileup on indels
     if os.path.isfile(args.out_dir +  '/Metrics/' + 'FNs_indel.txt'):
         command = 'awk \'{print $1,$2,$3}\' ' + args.out_dir + '/Metrics/' + 'FNs_indel.txt > ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt'
@@ -170,7 +198,7 @@ else:
         command = 'bcftools mpileup -Ou -T ' + args.out_dir + '/Metrics/FNs_indel_for_pileup.txt' + ' --gvcf 0 -f' + args.fasta + ' ' + args.bam + ' | bcftools call -m -Ov -o ' + args.out_dir + '/query_pileup_indel.vcf'
         process = sp.Popen(command, shell=True)
         process.wait()
-
+        
         print("Pileup ready!")
         print("Analyzing pileup...")
         print('Converting pileup into AVinput...')
@@ -187,15 +215,29 @@ else:
         print('Starting analysis on actual False Negatives...')
         print('Loading into R...')
         print('Starting analysis...')
+        '''
+    if os.path.isfile(args.out_dir +  '/Metrics/' + 'FNs_indel.txt'):
+        command = 'awk \'{print $1,$2,$3}\' ' + args.out_dir + '/Metrics/' + 'FNs_indel.txt > ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt'
+        process = sp.Popen(command, shell = True)
+        process.wait()
+        #add bam_readcount step
+        #command = 'singularity exec ' + script_folder + 'bam-readcount_latest.sif ' + ' -B ' + args.out_dir + ',' + os.path.dirname(args.fasta) + ',' + os.path.dirname(args.bam) + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
+        command = 'singularity exec ' + ' -B /hpcnfs/ ' + script_folder + 'bam-readcount_latest.sif ' + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
+        process = sp.Popen(command, shell=True)
+        process.wait()
+        #parse bam readcount output > ' + args.out_dir + 'query_indel_parsed.txt'
+        command = 'python ' + script_folder + 'brc_parser.py ' + args.out_dir + 'query_indel.txt'
+        process = sp.Popen(command, shell=True)
+        process.wait()
 
+        #convert parsed output to avinput-like file
+        command = 'Rscript ' + script_folder + 'av_converter.R ' + args.out_dir + 'query_indel_parsed.csv ' + args.out_dir + 'query_pileup_indel_converted.avinput '
+        process = sp.Popen(command, shell=True)
+        process.wait()
     if args.high_conf_bed == None:
         print('High Confidence Regions Bed file was not provided')
         print('Skipping Specificity computation...')
-        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file_snv ' + args.out_dir + 'query_pileup_snv.avinput ' + '--pileup_file_indel ' + args.out_dir + 'query_pileup_indel_converted.avinput ' + '--metrics_snv ' + args.out_dir + '/Metrics/bioinfo_metrics_snv.txt ' + '--metrics_indel ' + args.out_dir + '/Metrics/bioinfo_metrics_indel.txt ' +  '--TPs_table_snv ' + args.out_dir +'/Metrics/TPs_snv.txt ' + '--TPs_table_indel ' + args.out_dir + '/Metrics/TPs_indel.txt ' + '--FPs_table_snv ' + args.out_dir + '/Metrics/FPs_snv.txt ' + '--FPs_table_indel ' + args.out_dir + '/Metrics/FPs_indel.txt ' + '--FNs_table_snv ' + args.out_dir + '/Metrics/FNs_snv.txt' + ' --FNs_table_indel ' + args.out_dir + '/Metrics/FNs_indel.txt' + ' --out ' + args.out_dir + '/Metrics/'
-        process = sp.Popen(command, shell=True)
-        process.wait()
-        print('Tables generated!')
-        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file_snv ' + args.out_dir + '/query_pileup_snv.avinput ' + '--pileup_file_indel ' + args.out_dir + '/query_pileup_indel.avinput ' + '--metrics_snv ' + args.out_dir + '/Metrics/bioinfo_metrics_snv.txt ' + '--metrics_indel ' + args.out_dir + '/Metrics/bioinfo_metrics_indel.txt ' +  '--TPs_table_snv ' + args.out_dir + '/Metrics/TPs_snv.txt ' + '--TPs_table_indel ' + args.out_dir + '/Metrics/TPs_indel.txt ' + '--FPs_table_snv ' + args.out_dir + '/Metrics/FPs_snv.txt ' + '--FPs_table_indel ' + args.out_dir + '/Metrics/FPs_indel.txt ' + '--FNs_table_snv ' + args.out_dir + '/Metrics/FNs_snv.txt' + ' --FNs_table_indel ' + args.out_dir + '/Metrics/FNs_indel.txt' + ' --out ' + args.out_dir + '/Metrics/'
+        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file_snv ' + args.out_dir + 'query_pileup_snv_converted.avinput ' + '--pileup_file_indel ' + args.out_dir + 'query_pileup_indel_converted.avinput ' + '--metrics_snv ' + args.out_dir + '/Metrics/bioinfo_metrics_snv.txt ' + '--metrics_indel ' + args.out_dir + '/Metrics/bioinfo_metrics_indel.txt ' +  '--TPs_table_snv ' + args.out_dir +'/Metrics/TPs_snv.txt ' + '--TPs_table_indel ' + args.out_dir + '/Metrics/TPs_indel.txt ' + '--FPs_table_snv ' + args.out_dir + '/Metrics/FPs_snv.txt ' + '--FPs_table_indel ' + args.out_dir + '/Metrics/FPs_indel.txt ' + '--FNs_table_snv ' + args.out_dir + '/Metrics/FNs_snv.txt' + ' --FNs_table_indel ' + args.out_dir + '/Metrics/FNs_indel.txt' + ' --out ' + args.out_dir + '/Metrics/'
         process = sp.Popen(command, shell=True)
         process.wait()
         print('Tables generated!')
@@ -211,7 +253,7 @@ else:
         process = sp.Popen(command, shell=True)
         process.wait()
 
-        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file_snv ' + args.out_dir + '/query_pileup_snv.avinput ' + '--pileup_file_indel ' + args.out_dir + '/query_pileup_indel.avinput ' + '--metrics_snv ' + args.out_dir + '/Metrics/bioinfo_metrics_snv.txt ' + '--metrics_indel ' + args.out_dir + '/Metrics/bioinfo_metrics_indel.txt ' + '--bases ' + args.out_dir + '/Metrics/bases.txt ' + '--TPs_table_snv ' + args.out_dir + '/Metrics/TPs_snv.txt ' + '--TPs_table_indel ' + args.out_dir + '/Metrics/TPs_indel.txt ' + '--FPs_table_snv ' + args.out_dir + '/Metrics/FPs_snv.txt ' + '--FPs_table_indel ' + args.out_dir + '/Metrics/FPs_indel.txt ' + '--FNs_table_snv ' + args.out_dir + '/Metrics/FNs_snv.txt' + ' --FNs_table_indel ' + args.out_dir + '/Metrics/FNs_indel.txt' + ' --out ' + args.out_dir + '/Metrics/'
+        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file_snv ' + args.out_dir + '/query_pileup_snv.avinput ' + '--pileup_file_indel ' + args.out_dir + '/query_pileup_indel_converted.avinput ' + '--metrics_snv ' + args.out_dir + '/Metrics/bioinfo_metrics_snv.txt ' + '--metrics_indel ' + args.out_dir + '/Metrics/bioinfo_metrics_indel.txt ' + '--bases ' + args.out_dir + '/Metrics/bases.txt ' + '--TPs_table_snv ' + args.out_dir + '/Metrics/TPs_snv.txt ' + '--TPs_table_indel ' + args.out_dir + '/Metrics/TPs_indel.txt ' + '--FPs_table_snv ' + args.out_dir + '/Metrics/FPs_snv.txt ' + '--FPs_table_indel ' + args.out_dir + '/Metrics/FPs_indel.txt ' + '--FNs_table_snv ' + args.out_dir + '/Metrics/FNs_snv.txt' + ' --FNs_table_indel ' + args.out_dir + '/Metrics/FNs_indel.txt' + ' --out ' + args.out_dir + '/Metrics/'
         process = sp.Popen(command, shell=True)
         process.wait()
         
@@ -240,5 +282,11 @@ else:
     command = 'rm ' + args.out_dir + '/Metrics/FNs_snv_for_pileup.txt'
     process = sp.Popen(command, shell=True)
     process.wait()
+    #launch shiny application
+    ''' 
+    command = 'R -e \"shiny::runApp(\'./app.R\')\"'
+    process = sp.Popen(command, shell=True)
+    process.wait()
+    '''
     print("Analysis completed!")
     print("Thank you for using RecallME - v.0.1")
