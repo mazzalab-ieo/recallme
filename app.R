@@ -175,7 +175,7 @@ footer = div(
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
-    dashboardHeader(color = "blue", title = "RecallME v.0.1", inverted = TRUE,logo_path = "recallme.png", logo_align = "left"),
+    dashboardHeader(color = "blue", title = "RecallME v.0.1", inverted = TRUE),
     dashboardSidebar(
         size = "thin", color = "teal",
         sidebarMenu(
