@@ -3,13 +3,13 @@
 
 '''
 Authors: Gianluca Vozza, Valentina Favalli, Emanuele Bonetti
-v. 1.0
+v. 0.1
 '''
-# v. 1.0
+# v. 0.1
 
 # RecallME is free non-commercial software. 
 # Users need to obtain the ANNOVAR licence by themselves. 
-# Contact the Authors for commercial use.
+
 
 #modules
 import subprocess as sp
