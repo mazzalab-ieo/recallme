@@ -16,7 +16,7 @@ library(stringi)
 library(semantic.dashboard)
 library(reactable)
 library(gridExtra)
-source("/Users/ieo4781/Desktop/Lavoro/github/nov22/recallme/scripts/params_in_cols.R")
+source(paste0(getwd(),"/scripts/params_in_cols.R"))
 
 
 #create boxes with not in bam variants
