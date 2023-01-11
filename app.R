@@ -175,7 +175,7 @@ footer = div(
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
-    dashboardHeader(color = "blue", title = "RecallME v.0.1", inverted = TRUE),
+    dashboardHeader(color = "blue", title = "RecallME v.0.1", inverted = TRUE,logo_path = "recallme.png", logo_align = "left"),
     dashboardSidebar(
         size = "thin", color = "teal",
         sidebarMenu(
@@ -238,6 +238,9 @@ ui <- dashboardPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+    ##increase maximum allowed size for input files to 30 MB
+    options(shiny.maxRequestSize=30*1024^2) 
+    
     ###get query and GT variants
     query_reactive_snv <- reactive({
         req(input$query)
@@ -276,26 +279,38 @@ server <- function(input, output, session) {
         
         query_snv = params_in_cols(query_snv)
         
-        query_snv = query_snv %>% filter(query_snv$VAF >= as.numeric(input$vaf_snv))
-        call_snv = query_snv
-        
-        query_snv = query_snv %>% filter(query_snv$QD >= as.numeric(input$qd_snv))
-        call_snv = query_snv
-        
-        query_snv = query_snv %>% filter(query_snv$DP >= as.numeric(input$dp_snv))
-        call_snv = query_snv
-        
-        #query_snv = query_snv %>% filter(query_snv$AO >= as.numeric(input$ao_snv))
+        #query_snv = query_snv %>% filter(query_snv$VAF >= as.numeric(input$vaf_snv))
         #call_snv = query_snv
         
-        #query_snv = query_snv %>% filter(query_snv$RO >= as.numeric(input$ro_snv))
-        #call_snv = query_snv
+        #check that params columns have proper values
+        if (!is.na(query_snv$VAF)){
+            query_snv = query_snv %>% filter(query_snv$VAF >= as.numeric(input$vaf_snv))
+            call_snv = query_snv
+        }else{
+            call_snv = query_snv
+        }
         
-        #query_snv = query_snv %>% filter(query_snv$SSSB >= as.numeric(input$sssb_snv))
-        #call_snv = query_snv
+        if (!is.na(query_snv$QD)){
+            query_snv = query_snv %>% filter(query_snv$QD >= as.numeric(input$qd_snv))
+            call_snv = query_snv
+        }else{
+            call_snv = query_snv
+        }
         
-        query_snv = query_snv %>% filter(query_snv$STB < as.numeric(input$stb_snv))
-        call_snv = query_snv
+        if (!is.na(query_snv$DP)){
+            query_snv = query_snv %>% filter(query_snv$DP >= as.numeric(input$dp_snv))
+            call_snv = query_snv
+        }else{
+            call_snv = query_snv
+        }
+        
+        
+        if (!is.na(query_snv$STB)){
+            query_snv = query_snv %>% filter(query_snv$STB >= as.numeric(input$STB_snv))
+            call_snv = query_snv
+        }else{
+            call_snv = query_snv
+        }
         
         #query_snv = query_snv %>% filter(query_snv$STBP >= as.numeric(input$stbp_snv))
         #call_snv = query_snv
@@ -336,26 +351,37 @@ server <- function(input, output, session) {
         gt_indel$type <- as.character(gt_indel$type)
         query_indel = params_in_cols(query_indel)
         
-        query_indel = query_indel %>% filter(query_indel$VAF >= as.numeric(input$vaf_indel))
-        call_indel = query_indel
         
-        query_indel = query_indel %>% filter(query_indel$QD >= as.numeric(input$qd_indel))
-        call_indel = query_indel
+        #check that params columns have proper values
         
-        query_indel = query_indel %>% filter(query_indel$DP >= as.numeric(input$dp_indel))
-        call_indel = query_indel
+        if (!is.na(query_indel$VAF)){
+            query_indel = query_indel %>% filter(query_indel$VAF >= as.numeric(input$vaf_indel))
+            call_indel = query_indel
+        }else{
+            call_indel = query_indel
+        }
         
-       # query_indel = query_indel %>% filter(query_indel$AO >= as.numeric(input$ao_indel))
-        #call_indel = query_indel
+        if (!is.na(query_indel$QD)){
+            query_indel = query_indel %>% filter(query_indel$QD >= as.numeric(input$qd_indel))
+            call_indel = query_indel
+        }else{
+            call_indel = query_indel
+        }
         
-        #query_indel = query_indel %>% filter(query_indel$RO >= as.numeric(input$ro_indel))
-        #call_indel = query_indel
+        if (!is.na(query_indel$DP)){
+            query_indel = query_indel %>% filter(query_indel$DP >= as.numeric(input$dp_indel))
+            call_indel = query_indel
+        }else{
+            call_indel = query_indel
+        }
         
-        #query_indel = query_indel %>% filter(query_indel$SSSB >= as.numeric(input$sssb_indel))
-        #call_indel = query_indel
         
-        query_indel = query_indel %>% filter(query_indel$STB < as.numeric(input$stb_indel))
-        call_indel = query_indel
+        if (!is.na(query_indel$STB)){
+            query_indel = query_indel %>% filter(query_indel$STB >= as.numeric(input$STB_indel))
+            call_indel = query_indel
+        }else{
+            call_indel = query_indel
+        }
         
         #query_indel = query_indel %>% filter(query_indel$STBP >= as.numeric(input$stbp_indel))
         #call_indel = query_indel
@@ -501,7 +527,11 @@ server <- function(input, output, session) {
             return(NULL)
         }else{
             query = read.delim(input$query$datapath, sep="\t", header = F)#read whole table
-            query = query[,c("V1", "V2", "V3", "V4", "V5", "V13", "V16")]#retain VCF columns that are needed
+            tmp = as.data.frame(query[,ncol(query)])
+            colnames(tmp) = "Type"
+            query = query[,c("V1", "V2", "V3", "V4", "V5", "V13")]
+            query = cbind(query, tmp)
+            #query = query[,c("V1", "V2", "V3", "V4", "V5", "V13", "V16")]#retain VCF columns that are needed
             query = params_in_cols(query)
             query
         }
@@ -520,10 +550,31 @@ server <- function(input, output, session) {
         #tp_snv = params_in_cols(tp_snv)
         #tp_snv = tp_snv[,c("Chr", "Start", "End", "Ref", "Alt","VAF", "DP", "QD", "STB","Info", "Type")]
         #tp_snv$Info = NULL
-        tp_snv = tp_snv %>% filter(tp_snv$VAF >= as.numeric(input$vaf_snv))
-        tp_snv = tp_snv %>% filter(tp_snv$DP >= as.numeric(input$dp_snv))
-        tp_snv = tp_snv %>% filter(tp_snv$QD >= as.numeric(input$qd_snv))
-        tp_snv = tp_snv %>% filter(tp_snv$STB < as.numeric(input$stb_snv))
+        
+        if(!is.na(tp_snv$VAF)){
+            tp_snv =  tp_snv %>% filter(tp_snv$VAF >= as.numeric(input$vaf_snv))
+        }else{
+            tp_snv =  tp_snv
+        }
+        
+        if(!is.na(tp_snv$DP)){
+            tp_snv =  tp_snv %>% filter(tp_snv$DP >= as.numeric(input$dp_snv))
+        }else{
+            tp_snv =  tp_snv
+        }
+        
+        if(!is.na(tp_snv$QD)){
+            tp_snv =  tp_snv %>% filter(tp_snv$QD >= as.numeric(input$qd_snv))
+        }else{
+            tp_snv =  tp_snv
+        }
+        
+        if(!is.na(tp_snv$STB)){
+            tp_snv =  tp_snv %>% filter(tp_snv$STB >= as.numeric(input$stb_snv))
+        }else{
+            tp_snv =  tp_snv
+        }
+        
         tp_snv
     }) 
         
@@ -535,22 +586,62 @@ server <- function(input, output, session) {
         colnames(fp_snv) = c("Chr", "Start", "End", "Ref", "Alt","Info", "Type", "VAF", "DP", "QD", "STB")
         fp_snv$Info = NULL
         fp_snv$Type = NULL
-        fp_snv = fp_snv %>% filter(fp_snv$VAF >= as.numeric(input$vaf_snv))
-        fp_snv = fp_snv %>% filter(fp_snv$DP >= as.numeric(input$dp_snv))
-        fp_snv = fp_snv %>% filter(fp_snv$QD >= as.numeric(input$qd_snv))
-        fp_snv = fp_snv %>% filter(fp_snv$STB < as.numeric(input$stb_snv))
+        if(!is.na(fp_snv$VAF)){
+            fp_snv =  fp_snv %>% filter(fp_snv$VAF >= as.numeric(input$vaf_snv))
+        }else{
+            fp_snv =  fp_snv
+        }
+        
+        if(!is.na(fp_snv$DP)){
+            fp_snv =  fp_snv %>% filter(fp_snv$DP >= as.numeric(input$dp_snv))
+        }else{
+            fp_snv =  fp_snv
+        }
+        
+        if(!is.na(fp_snv$QD)){
+            fp_snv =  fp_snv %>% filter(fp_snv$QD >= as.numeric(input$qd_snv))
+        }else{
+            fp_snv =  fp_snv
+        }
+        
+        if(!is.na(fp_snv$STB)){
+            fp_snv =  fp_snv %>% filter(fp_snv$STB >= as.numeric(input$stb_snv))
+        }else{
+            fp_snv =  fp_snv
+        }
+        
         fp_snv
     })
     fn_tab_snv = reactive({
         req(input$query)
         req(input$folder)
         #fn_snv = read.delim(paste0(input$folder,"/FNs_snv.txt"), header = F, sep = " ")
-        tmp = query_reac() %>% filter(V16 == "SNV")
+        tmp = query_reac() %>% filter(Type == "SNV")
         gt_tmp = gt_reactive_snv() %>% filter(V16 == "SNV")
-        tmp = tmp %>% filter(tmp$VAF >= as.numeric(input$vaf_snv))
-        tmp = tmp %>% filter(tmp$DP >= as.numeric(input$dp_snv))
-        tmp = tmp %>% filter(tmp$QD >= as.numeric(input$qd_snv))
-        tmp = tmp %>% filter(tmp$STB < as.numeric(input$stb_snv))
+        if(!is.na(tmp$VAF)){
+            tmp =  tmp %>% filter(tmp$VAF >= as.numeric(input$vaf_snv))
+        }else{
+            tmp =  tmp
+        }
+        
+        if(!is.na(tmp$DP)){
+            tmp =  tmp %>% filter(tmp$DP >= as.numeric(input$dp_snv))
+        }else{
+            tmp =  tmp
+        }
+        
+        if(!is.na(tmp$QD)){
+            tmp =  tmp %>% filter(tmp$QD >= as.numeric(input$qd_snv))
+        }else{
+            tmp =  tmp
+        }
+        
+        if(!is.na(tmp$STB)){
+            tmp =  tmp %>% filter(tmp$STB >= as.numeric(input$stb_snv))
+        }else{
+            tmp =  tmp
+        }
+        
         fn_snv = anti_join(gt_tmp, tmp, by = c("V1", "V2", "V3", "V4", "V5"))
         fn_snv = fn_snv[,c(1:5)]
         colnames(fn_snv) = c("Chr", "Start", "End", "Ref", "Alt")
@@ -592,10 +683,30 @@ server <- function(input, output, session) {
         colnames(tp_indel) = c("Chr", "Start", "End", "Ref", "Alt","Info", "Type", "VAF", "DP", "QD", "STB")
         tp_indel$Info = NULL
         tp_indel$Type = NULL
-        tp_indel = tp_indel %>% filter(tp_indel$VAF >= as.numeric(input$vaf_indel))
-        tp_indel = tp_indel %>% filter(tp_indel$DP >= as.numeric(input$dp_indel))
-        tp_indel = tp_indel %>% filter(tp_indel$QD >= as.numeric(input$qd_indel))
-        tp_indel = tp_indel %>% filter(tp_indel$STB < as.numeric(input$stb_indel))
+        if(!is.na(tp_indel$VAF)){
+            tp_indel =  tp_indel %>% filter(tp_indel$VAF >= as.numeric(input$vaf_indel))
+        }else{
+            tp_indel =  tp_indel
+        }
+        
+        if(!is.na(tp_indel$DP)){
+            tp_indel =  tp_indel %>% filter(tp_indel$DP >= as.numeric(input$dp_indel))
+        }else{
+            tp_indel =  tp_indel
+        }
+        
+        if(!is.na(tp_indel$QD)){
+            tp_indel =  tp_indel %>% filter(tp_indel$QD >= as.numeric(input$qd_indel))
+        }else{
+            tp_indel =  tp_indel
+        }
+        
+        if(!is.na(tp_indel$STB)){
+            tp_indel =  tp_indel %>% filter(tp_indel$STB >= as.numeric(input$stb_indel))
+        }else{
+            tp_indel =  tp_indel
+        }
+        
         tp_indel
     }) 
     
@@ -607,10 +718,29 @@ server <- function(input, output, session) {
         colnames(fp_indel) = c("Chr", "Start", "End", "Ref", "Alt","Info", "Type", "VAF", "DP", "QD", "STB")
         fp_indel$Info = NULL
         fp_indel$Type = NULL
-        fp_indel = fp_indel %>% filter(fp_indel$VAF >= as.numeric(input$vaf_indel))
-        fp_indel = fp_indel %>% filter(fp_indel$DP >= as.numeric(input$dp_indel))
-        fp_indel = fp_indel %>% filter(fp_indel$QD >= as.numeric(input$qd_indel))
-        fp_indel = fp_indel %>% filter(fp_indel$STB < as.numeric(input$stb_indel))
+        if(!is.na(fp_indel$VAF)){
+            fp_indel =  fp_indel %>% filter(fp_indel$VAF >= as.numeric(input$vaf_indel))
+        }else{
+            fp_indel =  fp_indel
+        }
+        
+        if(!is.na(fp_indel$DP)){
+            fp_indel =  fp_indel %>% filter(fp_indel$DP >= as.numeric(input$dp_indel))
+        }else{
+            fp_indel =  fp_indel
+        }
+        
+        if(!is.na(fp_indel$QD)){
+            fp_indel =  fp_indel %>% filter(fp_indel$QD >= as.numeric(input$qd_indel))
+        }else{
+            fp_indel =  fp_indel
+        }
+        
+        if(!is.na(fp_indel$STB)){
+            fp_indel =  fp_indel %>% filter(fp_indel$STB >= as.numeric(input$stb_indel))
+        }else{
+            fp_indel =  fp_indel
+        }
         fp_indel
     })
     
@@ -619,12 +749,31 @@ server <- function(input, output, session) {
         req(input$folder)
         #fn_indel = read.delim(paste0(input$folder,"/FNs_indel.txt"), header = F, sep = " ")
         #colnames(fn_indel) = c("Chr", "Start", "End", "Ref", "Alt")
-        tmp = query_reac() %>% filter(V16 == "INDEL")
+        tmp = query_reac() %>% filter(Type == "INDEL")
         gt_tmp = gt_reactive_indel() %>% filter(V16 == "INDEL")
-        tmp = tmp %>% filter(tmp$VAF >= as.numeric(input$vaf_indel))
-        tmp = tmp %>% filter(tmp$DP >= as.numeric(input$dp_indel))
-        tmp = tmp %>% filter(tmp$QD >= as.numeric(input$qd_indel))
-        tmp = tmp %>% filter(tmp$STB < as.numeric(input$stb_indel))
+        if(!is.na(tmp$VAF)){
+            tmp =  tmp %>% filter(tmp$VAF >= as.numeric(input$vaf_indel))
+        }else{
+            tmp =  tmp
+        }
+        
+        if(!is.na(tmp$DP)){
+            tmp =  tmp %>% filter(tmp$DP >= as.numeric(input$dp_indel))
+        }else{
+            tmp =  tmp
+        }
+        
+        if(!is.na(tmp$QD)){
+            tmp =  tmp %>% filter(tmp$QD >= as.numeric(input$qd_indel))
+        }else{
+            tmp =  tmp
+        }
+        
+        if(!is.na(tmp$STB)){
+            tmp =  tmp %>% filter(tmp$STB >= as.numeric(input$stb_indel))
+        }else{
+            tmp =  tmp
+        }
         fn_indel = anti_join(gt_tmp, tmp, by = c("V1", "V2", "V3", "V4", "V5"))
         fn_indel = fn_indel[,c(1:5)]
         colnames(fn_indel) = c("Chr", "Start", "End", "Ref", "Alt")
@@ -735,9 +884,14 @@ server <- function(input, output, session) {
         for (param in params){
             tmp_tp = tp_tab_snv()
             tmp_fp = fp_tab_snv()
-            w.t = wilcox.test(as.numeric(tmp_tp[,param]), as.numeric(tmp_fp[,param]), paired = F, alternative = "two.side")
-            tmp = data.frame(Param=param, p_value = round(w.t$p.value,3))
-            param_tab = rbind(param_tab, tmp)
+            if(is.na(tmp_tp[,param]) || is.na(tmp_fp[,param])){
+                next()
+            }else{
+                w.t = wilcox.test(as.numeric(tmp_tp[,param]), as.numeric(tmp_fp[,param]), paired = F, alternative = "two.side")
+                tmp = data.frame(Param=param, p_value = round(w.t$p.value,3))
+                param_tab = rbind(param_tab, tmp) 
+            }
+            
         }
         reactable(param_tab)
     })
@@ -749,9 +903,13 @@ server <- function(input, output, session) {
         for (param in params){
             tmp_tp = tp_tab_indel()
             tmp_fp = fp_tab_indel()
-            w.t = wilcox.test(as.numeric(tmp_tp[,param]), as.numeric(tmp_fp[,param]), paired = F, alternative = "two.side")
-            tmp = data.frame(Param=param, p_value = round(w.t$p.value,3))
-            param_tab = rbind(param_tab, tmp)
+            if(is.na(tmp_tp[,param]) || is.na(tmp_fp[,param])){
+                next()
+            }else{
+                w.t = wilcox.test(as.numeric(tmp_tp[,param]), as.numeric(tmp_fp[,param]), paired = F, alternative = "two.side")
+                tmp = data.frame(Param=param, p_value = round(w.t$p.value,3))
+                param_tab = rbind(param_tab, tmp) 
+            }
         }
         reactable(param_tab)
     })
