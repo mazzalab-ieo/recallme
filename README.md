@@ -25,7 +25,7 @@ python -q $QUERY_VCF \
 --caller $CALLER_NAME 
 ```
 
-* **GENOME_BED** is a bedtools specific bed file with chromosome sizes in bps (i.e. chr1 n)
+* **GENOME_BED** is a bedtools specific bed file with chromosome sizes in bps (i.e. chr1 n) or a .fai index.
 * **BAM** file for query
 * **ANNOVAR_DIR** the directory where is stored convert2annovar.pl which is required for running RecallME
 * **CALLER_NAME** the name of the caller used to produce the query VCF file (GATK, TVC, Deepvariant, VarScan, LoFreq)
@@ -41,7 +41,7 @@ If you need help or you have comments and tips for improving RecallME, please se
 
 ## License
 
- RecallME is a free non-commercial software. Users need to obtain the ANNOVAR license by themselves. Contact the Authors for commercial use.
+ RecallME is a free non-commercial software. Users need to obtain the ANNOVAR license by themselves.
  
  ## Reference
  
