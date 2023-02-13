@@ -2,7 +2,7 @@
 RecallME is a condarized python tool for VCF files comparison and variant calling pipelines benchmarking and optimization.
 
 ## Installation and setup
-Once downloaded the repository, user has to install the conda environment from the yml file by typing the following command
+Once the repository has been pulled, user has to install the conda environment from the yml file by typing the following command
 ```
 conda env create -f RecallME_0.1.yml 
 ```
