@@ -151,5 +151,5 @@ dependencies:
   - r-xfun=0.6=r36h6115d3f_0
   - r-xml2=1.2.0=r36h29659fb_0
   - r-yaml=2.2.0=r36h96ca727_0
-prefix: /hpcnfs/scratch/LM/bioinfo/env/RecallMe_1.0
+
 
