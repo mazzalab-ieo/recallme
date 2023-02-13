@@ -34,7 +34,10 @@ For more info on required and not required commands, please type:
 python RecallME.py --help
 
 ## Pipeline optimization
-Within conda env start RecallMEapp.Rmd shiny app and start to refine pipeline parameters thresholds.
+Go to https://translational-oncology-lab.shinyapps.io/recallme/ and load: 
+* **_var_type.avinput files**
+* **.rds object**
+Use the UI commands to fine-tuning the Variant Calling parameters to optimize your pipeline.
 
 ## Info and comments
 If you need help or you have comments and tips for improving RecallME, please send a mail to gianluca.vozza@ieo.it
