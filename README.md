@@ -45,4 +45,4 @@ If you need help or you have comments and tips for improving RecallME, please se
  
  ## Reference
  
-RecallME is currently under submission.
+RecallME is currently under submission to a peer-reviewed journal.
