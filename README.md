@@ -35,7 +35,7 @@ python RecallME.py --help
 
 ## Pipeline optimization
 Go to https://translational-oncology-lab.shinyapps.io/recallme/ and load: 
-* **_var_type.avinput files**
+* **{query/ground_truth}_var_type.avinput files**
 * **.rds object**
 Use the UI commands to fine-tuning the Variant Calling parameters to optimize your pipeline.
 
