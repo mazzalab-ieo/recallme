@@ -4,7 +4,7 @@ RecallME is a condarized python tool for VCF files comparison and variant callin
 ## Installation and setup
 Once the repository has been pulled, user has to install the conda environment from the yml file by typing the following command
 ```
-conda env create -f RecallME_0.1.yml 
+conda env create -f RecallME_0.1.yml --prefix {path/to/env}
 ```
 To run RecallME you need to activate the conda environment and to install ANNOVAR (it requires a license which is free for non-commercial use).
 For more information about ANNOVAR, please visit https://annovar.openbioinformatics.org/en/latest/
@@ -12,7 +12,7 @@ For more information about ANNOVAR, please visit https://annovar.openbioinformat
 ## Basic commands
 To run a comparison, type:
 ```
-python -q $QUERY_VCF \
+python RecallME.py -q $QUERY_VCF \
 --high_conf_bed $BED \
 --query_format VCF \
 -g $GROUND_TRUTH \
