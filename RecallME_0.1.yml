@@ -3,6 +3,7 @@ channels:
   - bioconda
   - r
   - defaults
+  - conda-forge
 dependencies:
   - bcftools=1.9=ha228f0b_4
   - bedtools=2.29.2=hc088bd4_0
