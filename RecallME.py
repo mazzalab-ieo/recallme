@@ -169,7 +169,7 @@ else:
         process.wait()
         #add bam_readcount step
         #command = 'singularity exec ' + script_folder + 'bam-readcount_latest.sif ' + ' -B ' + args.out_dir + ',' + os.path.dirname(args.fasta) + ',' + os.path.dirname(args.bam) + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
-        command = 'singularity exec ' + ' -B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_snv.txt '
+        command = 'singularity exec ' + '-B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + 'bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_snv.txt '
         process = sp.Popen(command, shell=True)
         process.wait()
         #parse bam readcount output > ' + args.out_dir + 'query_indel_parsed.txt'
@@ -226,7 +226,7 @@ else:
         process.wait()
         #add bam_readcount step
         #command = 'singularity exec ' + script_folder + 'bam-readcount_latest.sif ' + ' -B ' + args.out_dir + ',' + os.path.dirname(args.fasta) + ',' + os.path.dirname(args.bam) + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
-        command = 'singularity exec ' + ' -B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
+        command = 'singularity exec ' + '-B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + 'bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
         process = sp.Popen(command, shell=True)
         process.wait()
         #parse bam readcount output > ' + args.out_dir + 'query_indel_parsed.txt'
