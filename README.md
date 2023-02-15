@@ -6,7 +6,7 @@ Once the repository has been pulled, user has to install the conda environment f
 ```
 conda env create -f RecallME_0.1.yml --prefix {path/to/env}
 ```
-To run RecallME you need to activate the conda environment and to install ANNOVAR (it requires a license which is free for non-commercial use).
+To run RecallME you need to activate the conda environment and to install singularity and ANNOVAR (it requires a license which is free for non-commercial use).
 For more information about ANNOVAR, please visit https://annovar.openbioinformatics.org/en/latest/
 
 ## Basic commands
