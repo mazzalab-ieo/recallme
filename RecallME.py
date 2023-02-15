@@ -87,6 +87,10 @@ if args.report == True:
 script_folder = os.path.dirname(os.path.realpath(__file__)) + ('/scripts/')
 #annovar folder
 annovar_folder = args.annovar_dir
+#query folder
+query_folder = os.path.dirname(args.query_vcf)
+#GT folder
+gt_folder = os.path.dirname(args.ground_truth)
 
 #Create a folder for Metrics
 if not os.path.exists(args.out_dir):
@@ -154,18 +158,18 @@ if args.bam == None:
     pass
 else:
     if os.path.isfile(args.out_dir +  '/Metrics/' + 'FNs_snv.txt'):
-        
+        '''
         command = 'awk \'{print $1,$2,$3}\' ' + args.out_dir + '/Metrics/' +  'FNs_snv.txt > ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt'
         process = sp.Popen(command, shell = True)
         process.wait()
-        
         '''
+        
         command = 'awk \'{print $1,$2,$3}\' ' + args.out_dir + '/Metrics/' + 'FNs_snv.txt > ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt'
         process = sp.Popen(command, shell = True)
         process.wait()
         #add bam_readcount step
         #command = 'singularity exec ' + script_folder + 'bam-readcount_latest.sif ' + ' -B ' + args.out_dir + ',' + os.path.dirname(args.fasta) + ',' + os.path.dirname(args.bam) + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
-        command = 'singularity exec ' + ' -B /hpcnfs/ ' + script_folder + 'bam-readcount_latest.sif ' + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_snv.txt '
+        command = 'singularity exec ' + ' -B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_snv.txt '
         process = sp.Popen(command, shell=True)
         process.wait()
         #parse bam readcount output > ' + args.out_dir + 'query_indel_parsed.txt'
@@ -187,7 +191,7 @@ else:
         command = 'perl ' + annovar_folder + '/convert2annovar.pl -format vcf4 ' + args.out_dir + '/query_pileup_snv.vcf --outfile ' + args.out_dir + '/query_pileup_snv.avinput --includeinfo'
         process = sp.Popen(command, shell=True)
         process.wait()
-    
+        '''
         '''
     #FNs for mpileup on indels
     if os.path.isfile(args.out_dir +  '/Metrics/' + 'FNs_indel.txt'):
@@ -222,7 +226,7 @@ else:
         process.wait()
         #add bam_readcount step
         #command = 'singularity exec ' + script_folder + 'bam-readcount_latest.sif ' + ' -B ' + args.out_dir + ',' + os.path.dirname(args.fasta) + ',' + os.path.dirname(args.bam) + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
-        command = 'singularity exec ' + ' -B /hpcnfs/ ' + script_folder + 'bam-readcount_latest.sif ' + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
+        command = 'singularity exec ' + ' -B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
         process = sp.Popen(command, shell=True)
         process.wait()
         #parse bam readcount output > ' + args.out_dir + 'query_indel_parsed.txt'
