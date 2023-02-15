@@ -153,4 +153,4 @@ dependencies:
   - r-xml2=1.2.0=r36h29659fb_0
   - r-yaml=2.2.0=r36h96ca727_0
   - r-optparse
-  - pandas=1.5.3
+  - pandas
