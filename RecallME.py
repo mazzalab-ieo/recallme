@@ -87,6 +87,10 @@ if args.report == True:
 script_folder = os.path.dirname(os.path.realpath(__file__)) + ('/scripts/')
 #annovar folder
 annovar_folder = args.annovar_dir
+#bam_folder
+bam_folder = os.path.dirname(args.bam)
+#fasta_folder
+fasta_folder = os.path.dirname(args.fasta)
 #query folder
 query_folder = os.path.dirname(args.query_vcf)
 #GT folder
@@ -169,7 +173,7 @@ else:
         process.wait()
         #add bam_readcount step
         #command = 'singularity exec ' + script_folder + 'bam-readcount_latest.sif ' + ' -B ' + args.out_dir + ',' + os.path.dirname(args.fasta) + ',' + os.path.dirname(args.bam) + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
-        command = 'singularity exec ' + '-B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + 'bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_snv.txt '
+        command = 'singularity exec ' + '-B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ',' + bam_folder + ',' + fasta_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + 'bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_snv.txt '
         process = sp.Popen(command, shell=True)
         process.wait()
         #parse bam readcount output > ' + args.out_dir + 'query_indel_parsed.txt'
@@ -226,7 +230,7 @@ else:
         process.wait()
         #add bam_readcount step
         #command = 'singularity exec ' + script_folder + 'bam-readcount_latest.sif ' + ' -B ' + args.out_dir + ',' + os.path.dirname(args.fasta) + ',' + os.path.dirname(args.bam) + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
-        command = 'singularity exec ' + '-B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + 'bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
+        command = 'singularity exec ' + '-B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ',' + bam_folder + ',' + fasta_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + 'bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
         process = sp.Popen(command, shell=True)
         process.wait()
         #parse bam readcount output > ' + args.out_dir + 'query_indel_parsed.txt'
@@ -257,7 +261,7 @@ else:
         process = sp.Popen(command, shell=True)
         process.wait()
 
-        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file_snv ' + args.out_dir + '/query_pileup_snv.avinput ' + '--pileup_file_indel ' + args.out_dir + '/query_pileup_indel_converted.avinput ' + '--metrics_snv ' + args.out_dir + '/Metrics/bioinfo_metrics_snv.txt ' + '--metrics_indel ' + args.out_dir + '/Metrics/bioinfo_metrics_indel.txt ' + '--bases ' + args.out_dir + '/Metrics/bases.txt ' + '--TPs_table_snv ' + args.out_dir + '/Metrics/TPs_snv.txt ' + '--TPs_table_indel ' + args.out_dir + '/Metrics/TPs_indel.txt ' + '--FPs_table_snv ' + args.out_dir + '/Metrics/FPs_snv.txt ' + '--FPs_table_indel ' + args.out_dir + '/Metrics/FPs_indel.txt ' + '--FNs_table_snv ' + args.out_dir + '/Metrics/FNs_snv.txt' + ' --FNs_table_indel ' + args.out_dir + '/Metrics/FNs_indel.txt' + ' --out ' + args.out_dir + '/Metrics/'
+        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file_snv ' + args.out_dir + '/query_pileup_snv_converted.avinput ' + '--pileup_file_indel ' + args.out_dir + '/query_pileup_indel_converted.avinput ' + '--metrics_snv ' + args.out_dir + '/Metrics/bioinfo_metrics_snv.txt ' + '--metrics_indel ' + args.out_dir + '/Metrics/bioinfo_metrics_indel.txt ' + '--bases ' + args.out_dir + '/Metrics/bases.txt ' + '--TPs_table_snv ' + args.out_dir + '/Metrics/TPs_snv.txt ' + '--TPs_table_indel ' + args.out_dir + '/Metrics/TPs_indel.txt ' + '--FPs_table_snv ' + args.out_dir + '/Metrics/FPs_snv.txt ' + '--FPs_table_indel ' + args.out_dir + '/Metrics/FPs_indel.txt ' + '--FNs_table_snv ' + args.out_dir + '/Metrics/FNs_snv.txt' + ' --FNs_table_indel ' + args.out_dir + '/Metrics/FNs_indel.txt' + ' --out ' + args.out_dir + '/Metrics/'
         process = sp.Popen(command, shell=True)
         process.wait()
         
