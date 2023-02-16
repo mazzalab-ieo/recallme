@@ -46,11 +46,7 @@ query_vcf$type <- as.character(query_vcf$type)
 ground_truth$type <- as.character(ground_truth$type)
 
 if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt$caller == "Freebayes"){
-    vaf = str_match_all(query_vcf$V13, "AF(.*?);")
-    vaf = sapply(vaf, "[[", 1)
-    vaf = sapply(str_split(vaf, "AF="), "[[",2)
-    vaf = as.numeric(sapply(str_split(vaf, ";"), "[[",1))
-
+    
     dp = str_match_all(query_vcf$V13, "DP(.*?);")
     dp = sapply(dp, "[[", 1)
     dp = sapply(str_split(dp, "DP="), "[[",2)
@@ -60,6 +56,20 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt
     qd = sapply(qd, "[", 1)
     qd = sapply(str_split(qd, "QD="), "[",2)
     qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+
+    #for GATK the exact VAF must be computed from AC and DEPTH
+    if (opt$caller == "GATK"){
+        ac = str_match_all(query_vcf$V13, "AC(.*?);")
+        ac = sapply(ac, "[[", 1)
+        ac = sapply(str_split(ac, "AC="), "[[",2)
+        ac = as.numeric(sapply(str_split(vaf, ";"), "[[",1)) 
+        vaf = ac/dp 
+    }else{
+        vaf = str_match_all(query_vcf$V13, "AF(.*?);")
+        vaf = sapply(vaf, "[[", 1)
+        vaf = sapply(str_split(vaf, "AF="), "[[",2)
+        vaf = as.numeric(sapply(str_split(vaf, ";"), "[[",1))
+    }
 
     query_vcf$VAF = vaf
     query_vcf$DP = dp
