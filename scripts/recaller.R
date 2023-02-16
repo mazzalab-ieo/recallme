@@ -59,11 +59,11 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt
 
     #for GATK the exact VAF must be computed from AC and DEPTH
     if (opt$caller == "GATK"){
-        ac = str_match_all(query_vcf$V13, "AC(.*?);")
-        ac = sapply(ac, "[[", 1)
-        ac = sapply(str_split(ac, "AC="), "[[",2)
-        ac = as.numeric(sapply(str_split(vaf, ";"), "[[",1)) 
-        vaf = ac/dp 
+        ad = str_match_all(query_vcf$V15, "(.*?):")
+        ad = sapply(ad, "[[", 2)
+        ad = sapply(str_split(ad, ","), "[[",2)
+        ad = as.numeric(sapply(str_split(ad, ":"), "[[",1))  
+        vaf = ad/dp 
     }else{
         vaf = str_match_all(query_vcf$V13, "AF(.*?);")
         vaf = sapply(vaf, "[[", 1)
