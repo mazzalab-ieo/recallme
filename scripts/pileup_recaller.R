@@ -32,7 +32,7 @@ opt = parse_args(OptionParser(option_list=option_list))
 metrics_rds = list()
 
 #generate data frames for pileup, TP, FP, FN and metrics
-
+empty_cols = c("V1", "V2", "V3", "V4", "V5")
 #check the existence of the table files and read them 
 info = file.info(opt$pileup_file_snv)
 if(info$size != 0){
@@ -40,7 +40,8 @@ if(info$size != 0){
                          , sep = "\t"
                          , header = F)
 }else{
-  pileup_FNs_snv <- data.frame()
+  pileup_FNs_snv <- data.frame(matrix(nrow = 0, ncol = 5))
+  colnames(pileup_FNs_snv) = empty_cols
 }
 
 info = file.info(opt$pileup_file_indel)
@@ -49,7 +50,8 @@ if(info$size != 0){
                          , sep = "\t"
                          , header = F)
 }else{
-  pileup_FNs_indel <- data.frame()
+  pileup_FNs_indel <- data.frame(matrix(nrow = 0, ncol = 5))
+  colnames(pileup_FNs_indel) = empty_cols
 }
 
 info = file.info(opt$TPs_table_snv)
@@ -58,7 +60,8 @@ if(info$size != 0){
                   , sep = " "
                   , header = F)
 }else{
-  TPs_snv <- data.frame()
+  TPs_snv <- data.frame(matrix(nrow = 0, ncol = 5))
+  colnames(TPs_snv) = empty_cols
 }
 
 info = file.info(opt$TPs_table_indel)
@@ -67,7 +70,8 @@ if(info$size != 0){
                   , sep = " "
                   , header = F)
 }else{
-  TPs_indel <- data.frame()
+  TPs_indel <- data.frame(matrix(nrow = 0, ncol = 5))
+  colnames(TPs_indel) = empty_cols
 }
 info = file.info(opt$FPs_table_snv)
 if(info$size != 0){
@@ -75,7 +79,8 @@ if(info$size != 0){
                   , sep = " "
                   , header = F)
 }else{
-  FPs_snv <- data.frame()
+  FPs_snv <- data.frame(matrix(nrow = 0, ncol = 5))
+  colnames(FPs_snv) = empty_cols
 }
 
 info = file.info(opt$FPs_table_indel)
@@ -84,7 +89,8 @@ if(info$size != 0){
                   , sep = " "
                   , header = F)
 }else{
-  FPs_indel <- data.frame()
+  FPs_indel <- data.frame(matrix(nrow = 0, ncol = 5))
+  colnames(FPs_indel) = empty_cols
 }
 
 info = file.info(opt$FNs_table_snv)
@@ -93,7 +99,8 @@ if(info$size != 0){
                   , sep = " "
                   , header = F)
 }else{
-  FNs_snv <- data.frame()
+  FNs_snv <- data.frame(matrix(nrow = 0, ncol = 5))
+  colnames(FNs_snv) = empty_cols
 }
 
 info = file.info(opt$FNs_table_indel)
@@ -102,7 +109,8 @@ if(info$size != 0){
                   , sep = " "
                   , header = F)
 }else{
-  FNs_indel <- data.frame()
+  FNs_indel <- data.frame(matrix(nrow = 0, ncol = 5))
+  colnames(FNs_indel) = empty_cols
 }
 
 metrics_snv <- read.delim(opt$metrics_snv
