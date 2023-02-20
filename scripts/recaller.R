@@ -84,10 +84,14 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt
     dp = sapply(dp, "[[", 3)
     dp = as.numeric(dp)
 
-    qd = str_match_all(query_vcf$V13, "QD(.*?);")
-    qd = sapply(qd, "[", 1)
-    qd = sapply(str_split(qd, "QD="), "[",2)
-    qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
+    qd = strsplit(as.character(query_vcf$V15), ":")
+    qd = sapply(qd, "[[", 2)
+    qd = as.numeric(qd)
+
+    #qd = str_match_all(query_vcf$V13, "QD(.*?);")
+    #qd = sapply(qd, "[", 1)
+    #qd = sapply(str_split(qd, "QD="), "[",2)
+    #qd = as.numeric(sapply(str_split(qd, ";"), "[",1))
 
     query_vcf$VAF = vaf
     query_vcf$DP = dp
