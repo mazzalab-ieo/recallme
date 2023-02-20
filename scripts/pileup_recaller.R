@@ -33,37 +33,77 @@ metrics_rds = list()
 
 #generate data frames for pileup, TP, FP, FN and metrics
 
-pileup_FNs_snv <- read.delim(opt$pileup_file_snv, 
+#check the existence of the table files and read them 
+info = file.info(opt$pileup_file_snv)
+if(info$size != 0){
+  pileup_FNs_snv <- read.delim(opt$pileup_file_snv, 
                          , sep = "\t"
                          , header = F)
+}else{
+  pileup_FNs_snv <- data.frame()
+}
 
-pileup_FNs_indel <- read.delim(opt$pileup_file_indel, 
+info = file.info(opt$pileup_file_indel)
+if(info$size != 0){
+  pileup_FNs_indel <- read.delim(opt$pileup_file_indel, 
                          , sep = "\t"
                          , header = F)
+}else{
+  pileup_FNs_indel <- data.frame()
+}
 
-TPs_snv <- read.delim(opt$TPs_table_snv
+info = file.info(opt$TPs_table_snv)
+if(info$size != 0){
+  TPs_snv <- read.delim(opt$TPs_table_snv
                   , sep = " "
                   , header = F)
+}else{
+  TPs_snv <- data.frame()
+}
 
-TPs_indel <- read.delim(opt$TPs_table_indel
+info = file.info(opt$TPs_table_indel)
+if(info$size != 0){
+  TPs_indel <- read.delim(opt$TPs_table_indel
                   , sep = " "
                   , header = F)
-
-FPs_snv <- read.delim(opt$FPs_table_snv
+}else{
+  TPs_indel <- data.frame()
+}
+info = file.info(opt$FPs_table_snv)
+if(info$size != 0){
+  FPs_snv <- read.delim(opt$FPs_table_snv
                   , sep = " "
                   , header = F)
+}else{
+  FPs_snv <- data.frame()
+}
 
-FPs_indel <- read.delim(opt$FPs_table_indel
+info = file.info(opt$FPs_table_indel)
+if(info$size != 0){
+  FPs_indel <- read.delim(opt$FPs_table_indel
                   , sep = " "
                   , header = F)
+}else{
+  FPs_indel <- data.frame()
+}
 
-FNs_snv <- read.delim(opt$FNs_table_snv
+info = file.info(opt$FNs_table_snv)
+if(info$size != 0){
+  FNs_snv <- read.delim(opt$FNs_table_snv
                   , sep = " "
                   , header = F)
+}else{
+  FNs_snv <- data.frame()
+}
 
-FNs_indel <- read.delim(opt$FNs_table_indel
+info = file.info(opt$FNs_table_indel)
+if(info$size != 0){
+  FNs_indel <- read.delim(opt$FNs_table_indel
                   , sep = " "
                   , header = F)
+}else{
+  FNs_indel <- data.frame()
+}
 
 metrics_snv <- read.delim(opt$metrics_snv
                   , sep = " "
