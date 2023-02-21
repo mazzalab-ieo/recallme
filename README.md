@@ -1,7 +1,7 @@
 RecallME: a tool for VCF files comparison and efficient validation method
 =============
 
-[fork my repository](https://github.com/user/repository/fork)
+[!fork my repository](https://github.com/user/repository/fork)
 
 RecallME is a condarized python tool for VCF files comparison and variant calling pipelines benchmarking and optimization.
 
