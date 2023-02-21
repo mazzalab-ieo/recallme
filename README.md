@@ -2,7 +2,7 @@ RecallME: a tool for VCF files comparison and efficient validation method
 =============
 
 ![latest release](https://img.shields.io/github/v/release/mazzalab-ieo/recallme)
-
+[![OS]]Linux
 RecallME is a condarized python tool for VCF files comparison and variant calling pipelines benchmarking and optimization.
 
 ## Installation and setup
