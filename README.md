@@ -4,7 +4,7 @@ RecallME: a tool for VCF files comparison and efficient validation method
 ![Watch](https://img.shields.io/github/watchers/mazzalab-ieo/recallme?label=Watch)
 ![Stars](https://img.shields.io/github/stars/mazzalab-ieo/recallme?style=social)
 ![](https://img.shields.io/static/v1?label=Platform&message=Linux&color=lightgrey)
-![](https://img.shields.io/static/v1?label=Dependencies&message=singularity-annovar&color=lightgrey)
+![](https://img.shields.io/static/v1?label=Dependencies&message=singularity,annovar&color=lightgrey)
 
 
 
