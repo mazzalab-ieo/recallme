@@ -1,4 +1,6 @@
-## RecallME: a tool for VCF files comparison and efficient validation method
+RecallME: a tool for VCF files comparison and efficient validation method
+=============
+
 RecallME is a condarized python tool for VCF files comparison and variant calling pipelines benchmarking and optimization.
 
 ## Installation and setup
