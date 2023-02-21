@@ -256,8 +256,7 @@ else:
         process = sp.Popen(command, shell=True)
         process.wait()
 
-        command = 'grep -w genome ' + args.out_dir + '/genome_cov.txt | awk \'{print $3}\'  | awk \'FNR == 2 {print}\' > ' + \
-        args.out_dir + 'Metrics/bases.txt' 
+        command = 'grep -w genome ' + args.out_dir + '/genome_cov.txt | awk \'{print $3}\'  | awk \'FNR == 2 {print}\' > ' + args.out_dir + '/Metrics/bases.txt' 
         process = sp.Popen(command, shell=True)
         process.wait()
 
