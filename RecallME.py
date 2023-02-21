@@ -99,8 +99,8 @@ gt_folder = os.path.dirname(args.ground_truth)
 #Create a folder for Metrics
 if not os.path.exists(args.out_dir):
    os.mkdir(args.out_dir)
-if not os.path.exists(args.out_dir + "/Metrics"):
-   os.mkdir(args.out_dir + "/Metrics")
+if not os.path.exists(args.out_dir + "/Metrics/"):
+   os.mkdir(args.out_dir + "/Metrics/")
 
 
 #Create query input
@@ -173,16 +173,16 @@ else:
         process.wait()
         #add bam_readcount step
         #command = 'singularity exec ' + script_folder + 'bam-readcount_latest.sif ' + ' -B ' + args.out_dir + ',' + os.path.dirname(args.fasta) + ',' + os.path.dirname(args.bam) + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
-        command = 'singularity exec ' + '-B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ',' + bam_folder + ',' + fasta_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + 'bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_snv.txt '
+        command = 'singularity exec ' + '-B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ',' + bam_folder + ',' + fasta_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + 'bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_snv_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + '/query_snv.txt '
         process = sp.Popen(command, shell=True)
         process.wait()
         #parse bam readcount output > ' + args.out_dir + 'query_indel_parsed.txt'
-        command = 'python ' + script_folder + 'brc_parser.py ' + args.out_dir + 'query_snv.txt'
+        command = 'python ' + script_folder + 'brc_parser.py ' + args.out_dir + '/query_snv.txt'
         process = sp.Popen(command, shell=True)
         process.wait()
 
         #convert parsed output to avinput-like file
-        command = 'Rscript ' + script_folder + 'av_converter_snv.R ' + args.out_dir + 'query_snv_parsed.csv ' + args.out_dir + 'query_pileup_snv_converted.avinput '
+        command = 'Rscript ' + script_folder + 'av_converter_snv.R ' + args.out_dir + '/query_snv_parsed.csv ' + args.out_dir + '/query_pileup_snv_converted.avinput '
         process = sp.Popen(command, shell=True)
         process.wait()
         '''
@@ -230,33 +230,33 @@ else:
         process.wait()
         #add bam_readcount step
         #command = 'singularity exec ' + script_folder + 'bam-readcount_latest.sif ' + ' -B ' + args.out_dir + ',' + os.path.dirname(args.fasta) + ',' + os.path.dirname(args.bam) + ' bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
-        command = 'singularity exec ' + '-B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ',' + bam_folder + ',' + fasta_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + 'bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + 'query_indel.txt '
+        command = 'singularity exec ' + '-B ' + args.out_dir + ',' + query_folder + ',' + gt_folder + ',' + script_folder + ',' + bam_folder + ',' + fasta_folder + ' ' + script_folder + 'bam-readcount_latest.sif ' + 'bam-readcount -f ' + args.fasta + ' -l ' + args.out_dir + '/Metrics/' +  'FNs_indel_for_pileup.txt ' + args.bam + ' > ' + args.out_dir + '/query_indel.txt '
         process = sp.Popen(command, shell=True)
         process.wait()
         #parse bam readcount output > ' + args.out_dir + 'query_indel_parsed.txt'
-        command = 'python ' + script_folder + 'brc_parser.py ' + args.out_dir + 'query_indel.txt'
+        command = 'python ' + script_folder + 'brc_parser.py ' + args.out_dir + '/query_indel.txt'
         process = sp.Popen(command, shell=True)
         process.wait()
 
         #convert parsed output to avinput-like file
-        command = 'Rscript ' + script_folder + 'av_converter.R ' + args.out_dir + 'query_indel_parsed.csv ' + args.out_dir + 'query_pileup_indel_converted.avinput '
+        command = 'Rscript ' + script_folder + 'av_converter.R ' + args.out_dir + '/query_indel_parsed.csv ' + args.out_dir + '/query_pileup_indel_converted.avinput '
         process = sp.Popen(command, shell=True)
         process.wait()
     if args.high_conf_bed == None:
         print('High Confidence Regions Bed file was not provided')
         print('Skipping Specificity computation...')
-        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file_snv ' + args.out_dir + 'query_pileup_snv_converted.avinput ' + '--pileup_file_indel ' + args.out_dir + 'query_pileup_indel_converted.avinput ' + '--metrics_snv ' + args.out_dir + '/Metrics/bioinfo_metrics_snv.txt ' + '--metrics_indel ' + args.out_dir + '/Metrics/bioinfo_metrics_indel.txt ' +  '--TPs_table_snv ' + args.out_dir +'/Metrics/TPs_snv.txt ' + '--TPs_table_indel ' + args.out_dir + '/Metrics/TPs_indel.txt ' + '--FPs_table_snv ' + args.out_dir + '/Metrics/FPs_snv.txt ' + '--FPs_table_indel ' + args.out_dir + '/Metrics/FPs_indel.txt ' + '--FNs_table_snv ' + args.out_dir + '/Metrics/FNs_snv.txt' + ' --FNs_table_indel ' + args.out_dir + '/Metrics/FNs_indel.txt' + ' --out ' + args.out_dir + '/Metrics/'
+        command = 'Rscript ' + script_folder + 'pileup_recaller.R ' + '--pileup_file_snv ' + args.out_dir + '/query_pileup_snv_converted.avinput ' + '--pileup_file_indel ' + args.out_dir + '/query_pileup_indel_converted.avinput ' + '--metrics_snv ' + args.out_dir + '/Metrics/bioinfo_metrics_snv.txt ' + '--metrics_indel ' + args.out_dir + '/Metrics/bioinfo_metrics_indel.txt ' +  '--TPs_table_snv ' + args.out_dir +'/Metrics/TPs_snv.txt ' + '--TPs_table_indel ' + args.out_dir + '/Metrics/TPs_indel.txt ' + '--FPs_table_snv ' + args.out_dir + '/Metrics/FPs_snv.txt ' + '--FPs_table_indel ' + args.out_dir + '/Metrics/FPs_indel.txt ' + '--FNs_table_snv ' + args.out_dir + '/Metrics/FNs_snv.txt' + ' --FNs_table_indel ' + args.out_dir + '/Metrics/FNs_indel.txt' + ' --out ' + args.out_dir + '/Metrics/'
         process = sp.Popen(command, shell=True)
         process.wait()
         print('Tables generated!')
     else:
         print('High Confidence Regions Bed file was provided')
         print('Specificity computation...')
-        command = 'bedtools genomecov -i ' + args.high_conf_bed + ' -g '+ args.genome_bed +  ' > ' + args.out_dir + 'genome_cov.txt'
+        command = 'bedtools genomecov -i ' + args.high_conf_bed + ' -g '+ args.genome_bed +  ' > ' + args.out_dir + '/genome_cov.txt'
         process = sp.Popen(command, shell=True)
         process.wait()
 
-        command = 'grep -w genome ' + args.out_dir + 'genome_cov.txt | awk \'{print $3}\'  | awk \'FNR == 2 {print}\' > ' + \
+        command = 'grep -w genome ' + args.out_dir + '/genome_cov.txt | awk \'{print $3}\'  | awk \'FNR == 2 {print}\' > ' + \
         args.out_dir + 'Metrics/bases.txt' 
         process = sp.Popen(command, shell=True)
         process.wait()
