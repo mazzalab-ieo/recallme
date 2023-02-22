@@ -24,7 +24,8 @@ option_list <- list(make_option(c("--pileup_file_snv"), default = "NA", type = "
                     , make_option(c("--TPs_table_snv"), default = "NA", type = "character", help = "Table of TPs")
                     , make_option(c("--TPs_table_indel"), default = "NA", type = "character", help = "Table of TPs")
                     , make_option(c("--bases"), default = "NA", type = "character", help = "number of bases covered by the panel high conf")
-                    , make_option(c("--out"), default = "NA", type = "character", help = "Output directory")                 
+                    , make_option(c("--out"), default = "NA", type = "character", help = "Output directory")
+                    , make_option(c("--caller"), default = "NA", type = "character", help = "Caller which produced the query VCF")                 
 )
 
 opt = parse_args(OptionParser(option_list=option_list))
@@ -139,14 +140,7 @@ covered_bases <- bases$V1
 
 ####### SNV metrics ########### 
 if (is.null(pileup_FNs_snv) == FALSE){
-    dp = str_match_all(pileup_FNs_snv$V13, "DP(.*?);")
-    dp = sapply(dp, "[[", 1)
-    dp = sapply(str_split(dp, "DP="), "[[",2)
-    dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
-
-    median_dp <- median(dp)
-    print(paste0("Median Depth in FNs reviewed is ", median_dp))
-
+    
     #Create the string for the comparison
     pileup_fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(pileup_FNs_snv$V1, "_"), pileup_FNs_snv$V2), "_"), pileup_FNs_snv$V3),"_"), pileup_FNs_snv$V4), "_"), pileup_FNs_snv$V5)
     fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(FNs_snv$V1, "_"), FNs_snv$V2), "_"), FNs_snv$V3), "_"), FNs_snv$V4), "_"), FNs_snv$V5)
@@ -300,14 +294,7 @@ metrics_rds[["metrics_snv"]] = metrics
 
 ####### INDEL metrics ########### 
 if (is.null(pileup_FNs_indel) == FALSE){
-  dp = str_match_all(pileup_FNs_indel$V13, "DP(.*?);")
-  dp = sapply(dp, "[[", 1)
-  dp = sapply(str_split(dp, "DP="), "[[",2)
-  dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
-
-  median_dp <- median(dp)
-  print(paste0("Median Depth in FNs reviewed is ", median_dp))
-
+  
   #Create the string for the comparison
   pileup_fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(pileup_FNs_indel$V1, "_"), pileup_FNs_indel$V2), "_"), pileup_FNs_indel$V3),"_"), pileup_FNs_indel$V4), "_"), pileup_FNs_indel$V5)
   fns <- paste0(paste0(paste0(paste0(paste0(paste0(paste0(paste0(FNs_indel$V1, "_"), FNs_indel$V2), "_"), FNs_indel$V3), "_"), FNs_indel$V4), "_"), FNs_indel$V5)
@@ -472,5 +459,5 @@ metrics_rds[["Variants_not_in_bam_indel"]] = read.delim(paste0(opt$out, "Variant
       metrics_rds[["Variants_not_in_bam_indel"]] = data.frame()
     }
 metrics_rds[["metrics_indel"]] = metrics
-
+metrics_rds[['caller']] = as.character(opt$caller)
 saveRDS(object = metrics_rds, file = paste0(opt$out, "metrics_to_upload.rds"))

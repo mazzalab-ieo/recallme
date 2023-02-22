@@ -52,6 +52,11 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt
     dp = sapply(str_split(dp, "DP="), "[[",2)
     dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
 
+    if (opt$caller == "LoFreq" || opt$caller == "Freebayes"){
+        qual = as.numeric(query_vcf$V11)
+        qd = 4*(qual/dp)
+
+    }
     qd = str_match_all(query_vcf$V13, "QD(.*?);")
     qd = sapply(qd, "[", 1)
     qd = sapply(str_split(qd, "QD="), "[",2)
