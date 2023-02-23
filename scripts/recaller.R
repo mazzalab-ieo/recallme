@@ -163,7 +163,7 @@ if (opt$gt_vaf == "None"){
     gt = ground_truth
 
 }else{
-    if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq"){
+    if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt$caller == "Freebayes"){
     vaf = str_match_all(ground_truth$V13, "AF(.*?);")
     vaf = sapply(vaf, "[[", 1)
     vaf = sapply(str_split(vaf, "AF="), "[[",2)
@@ -173,6 +173,8 @@ if (opt$gt_vaf == "None"){
     dp = sapply(dp, "[[", 1)
     dp = sapply(str_split(dp, "DP="), "[[",2)
     dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
+
+    
 
     ground_truth$VAF = vaf
     ground_truth$DP = dp
