@@ -15,10 +15,10 @@ suppressMessages(library("tidyverse"))
 #parsing arguments
 option_list <- list(make_option(c("-g", "--ground_truth"), default = "NA", type = "character", help = "Ground truth file")
     , make_option(c("-v", "--query_vcf"), default = "NA", type = "character", help = "Called VCF to compare")
-    , make_option(c("--query_vaf"), default = "NA", type = "character", help = "Set VAF threshold for query VCF")
-    , make_option(c("--query_qd"), default = "NA", type = "character", help = "Set VAF threshold for query VCF")
-    , make_option(c("--gt_vaf"), default = "NA", type = "character", help = "Set VAF threshold for ground_truth VCF")
-    , make_option(c("--gt_qd"), default = "NA", type = "character", help = "Set VAF threshold for ground_truth VCF")
+    #, make_option(c("--query_vaf"), default = "NA", type = "character", help = "Set VAF threshold for query VCF")
+    #, make_option(c("--query_qd"), default = "NA", type = "character", help = "Set VAF threshold for query VCF")
+    #, make_option(c("--gt_vaf"), default = "NA", type = "character", help = "Set VAF threshold for ground_truth VCF")
+    #, make_option(c("--gt_qd"), default = "NA", type = "character", help = "Set VAF threshold for ground_truth VCF")
     , make_option(c("--out"), default = "NA", type = "character", help = "Output directory")
     , make_option(c("--caller"), default = "NA", type = "character", help = "Caller which produced the query VCF")
 )
@@ -143,82 +143,9 @@ if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt
 
 print("VAF and DP extracted and added.")
 
-if (opt$query_vaf == "None"){
-    call = query_vcf
 
-}else{
-    query_vcf = query_vcf %>% filter(query_vcf$VAF >= as.numeric(opt$query_vaf))
-    call = query_vcf
-}
-
-if (opt$query_qd == "None"){
-    call = query_vcf
-
-}else{
-    query_vcf = query_vcf %>% filter(query_vcf$QD >= as.numeric(opt$query_qd))
-    call = query_vcf
-}
-
-if (opt$gt_vaf == "None"){
-    gt = ground_truth
-
-}else{
-    if (opt$caller == "GATK" || opt$caller == "TVC" || opt$caller == "LoFreq" || opt$caller == "Freebayes"){
-    vaf = str_match_all(ground_truth$V13, "AF(.*?);")
-    vaf = sapply(vaf, "[[", 1)
-    vaf = sapply(str_split(vaf, "AF="), "[[",2)
-    vaf = as.numeric(sapply(str_split(vaf, ";"), "[[",1))
-
-    dp = str_match_all(ground_truth$V13, "DP(.*?);")
-    dp = sapply(dp, "[[", 1)
-    dp = sapply(str_split(dp, "DP="), "[[",2)
-    dp = as.numeric(sapply(str_split(dp, ";"), "[[",1))
-
-    
-
-    ground_truth$VAF = vaf
-    ground_truth$DP = dp
-
-}else if(opt$caller == "Deepvariant"){
-    vaf = strsplit(as.character(ground_truth$V15), ":")
-    vaf = sapply(vaf, "[[", 5)
-    vaf = as.numeric(vaf)
-
-    dp = strsplit(as.character(ground_truth$V15), ":")
-    dp = sapply(dp, "[[", 3)
-    dp = as.numeric(dp)
-
-    ground_truth$VAF = vaf
-    ground_truth$DP = dp
-}else if (opt$caller == "VarScan2"){
-    vaf = strsplit(as.character(ground_truth$V15), ":")
-    vaf = sapply(vaf, "[[", 7)
-    vaf = gsub("%", "", vaf)
-    vaf = as.numeric(vaf)
-
-    dp = strsplit(as.character(ground_truth$V15), ":")
-    dp = sapply(dp, "[[", 4)
-    dp = as.numeric(dp)
-
-    ground_truth$VAF = vaf
-    ground_truth$DP = dp
-
-}else if (opt$caller == "VarDict"){
-    vaf = strsplit(as.character(ground_truth$V15), ":")
-    vaf = sapply(vaf, "[[", 7)
-    vaf = as.numeric(vaf)
-
-    dp = strsplit(as.character(ground_truth$V15), ":")
-    dp = sapply(dp, "[[", 2)
-    dp = as.numeric(dp)
-
-    ground_truth$VAF = vaf
-    ground_truth$DP = dp
-
-}
-    ground_truth = ground_truth %>% filter(ground_truth$VAF >= as.numeric(opt$gt_vaf))
-    gt = ground_truth
-}
+call = query_vcf
+gt = ground_truth
 #TODO
 #Set workflow for QD threshold on GT VCF
 #create variables for SNVs and for INDELs
