@@ -12,7 +12,7 @@ bam_rc_fn_nozero = bam_rc_fn %>% filter(count > 0)
 tmp = data.frame()
 df = data.frame()
 for (line in 1:dim(bam_rc_fn_nozero)[1]){
-  tmp = bam_rc_fn_nozero[line,c("chr", "position", "position", "ref", "base", "depth", "count", "vaf","positive_strand", "negative_strand", "percent_bias")]
+  tmp = bam_rc_fn_nozero[line,c("chr", "position", "position","ref", "base", "depth", "count", "vaf","positive_strand", "negative_strand", "percent_bias")]
   tmp$base = gsub("\\)", "",gsub("\\(", "", tmp$base))
   df = rbind(df,tmp)
 }
@@ -35,28 +35,28 @@ df$base = as.character(df$base)
 
 ##if there are indels convert the notation as avinputs
 #deletions conversion
-if (length(idx_del) > 0){
+if (length(idx_del) == 0){
+  df = df
+}else if(idx_del > 0){
   for (i in idx_del){
     #print(i)
     base = as.character(gsub("-", "",df[i, "base"]))
     df[i,"ref"] = base
     df[i,"base"] = "-"
   }
-}else{
-  next()
 }
 
 
 #insertions conversion
-if (length(idx_ins) > 0){
+if (length(idx_ins) == 0){
+  df = df
+}else if(length(idx_ins > 0)) {
   for (i in idx_ins){
     #print(i)
     base = as.character(gsub("\\+", "",df[i, "base"]))
     df[i,"ref"] = "-"
     df[i,"base"] = base
   }
-}else{
-  next()
 }
 
 #print out the table
