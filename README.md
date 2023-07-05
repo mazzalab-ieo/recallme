@@ -8,18 +8,19 @@ RecallME: a tool for VCF files comparison and efficient validation method
 ![](https://img.shields.io/static/v1?label=Container&message=Docker&color=lightgrey)
 
 
+RecallME is a containerized python tool for VCF file comparison and variant calling pipelines benchmarking and optimization.
 
-RecallME is a condarized python tool for VCF files comparison and variant calling pipelines benchmarking and optimization.
+### Quick start
+To run RecallME you need to activate the conda environment and to install singularity (> v.3) and ANNOVAR (it requires a license free of charge for non-commercial purposes). For more information about ANNOVAR, please visit the <a href="https://annovar.openbioinformatics.org/en/latest/" target="_blank"> official website</a>
 
-## Installation and setup
-Once the repository has been pulled, user has to install the conda environment from the yml file by typing the following command
+
+### Installation and setup
+Once the repository has been cloned, the user has to create the conda environment by typing the following command:
 ```
-conda env create -f RecallME_0.1.yml --prefix {path/to/env}
+conda env create --file env.txt --name {name_env}
 ```
-To run RecallME you need to activate the conda environment and to install singularity and ANNOVAR (it requires a license which is free for non-commercial use).
-For more information about ANNOVAR, please visit https://annovar.openbioinformatics.org/en/latest/
 
-## Basic commands
+### Basic commands
 To run a comparison, type:
 ```
 python RecallME.py -q $QUERY_VCF \
@@ -41,24 +42,29 @@ python RecallME.py -q $QUERY_VCF \
 * **CALLER_NAME** the name of the caller used to produce the query VCF file (GATK, TVC, Deepvariant, VarScan, LoFreq)
 
 For more info on required and not required commands, please type:
+```
 python RecallME.py --help
+```
+### Tutorial 
+To run the example, open a terminal and type:
+```
+cd recallme/
+bash run_example.sh
+```
 
-## Pipeline optimization
-Go to https://translational-oncology-lab.shinyapps.io/recallme/ and load: 
-* **{query/ground_truth}_var_type.avinput files**
-* **.rds object**
-Use the UI commands to fine-tuning the Variant Calling parameters to optimize your pipeline.
+<code>run_example.sh</code> produces an outdir/ folder in the current directory as follows:<br>
 
-## Data Visualization
-To perform benchmarking analysis visualization and fine-tuning of VC parameters it is possible to use the RecallME web application, available at https://translational-oncology-lab.shinyapps.io/recallme/ or downloadable as a docker image at https://hub.docker.com/r/gianlucavozza/recallme_gui
+<img src="www/diag.png" alt="diag" width="500" height="333">
+              
+After the output has been generated, go to the <a href="https://translational-oncology-lab.shinyapps.io/recallme/" target="_blank">web app</a> and load the AVinputs (query_split_var_type.avinput + ground_truth_var_type.avinput) and the rds object to visualize your results and to optimize your pipeline.
 
-## Info and comments
-If you need help or you have comments and tips for improving RecallME, please send a mail to gianluca.vozza@ieo.it
+For additional information, please check the <a href="https://translational-oncology-lab.shinyapps.io/recallme/" target="_blank">about</a> page for interrogating the manual.
 
-## License
+### License
+**MIT License**
 
- RecallME is a free non-commercial software. Users need to obtain the ANNOVAR license by themselves.
- 
- ## Reference
- 
-RecallME is currently under submission to a peer-reviewed journal.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
