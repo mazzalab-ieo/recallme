@@ -48,6 +48,11 @@ if [ -z "$annovar" ]; then
   exit 1  # Exit the script with an error code
 fi
 
+
+
+echo "Running RecallME.py on example files..."
+
+
 python $PWD/RecallME.py \
 -q $query \
 -g $ground_truth \
