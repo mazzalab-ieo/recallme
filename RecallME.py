@@ -56,7 +56,10 @@ parser.add_argument('-g','--ground_truth', type=str,
 parser.add_argument('-a','--annovar_dir', type=dir_path,
                     help='The path to the annovar directory', required=True)
 parser.add_argument('-o','--out_dir', type=str,
-                    help='the path to output directory', required=True)               
+                    help='the path to output directory', required=True)  
+parser.add_argument('--caller', type=str,
+                    help='Caller which produced the query VCF (GATK, TVC, Deepvariant, VarScan2, LoFreq, VarDict, Freebayes)', required=True)             
+'''
 parser.add_argument('--vaf_query', type=float,
                     help='Set VAF threshold for query VCF (optional)', required=False)
 parser.add_argument('--qd_query', type=float,
@@ -65,10 +68,10 @@ parser.add_argument('--vaf_gt', type=float,
                     help='Set VAF threshold for ground truth VCF (optional)', required=False)
 parser.add_argument('--qd_gt', type=float,
                     help='Set QD threshold for ground truth VCF (optional, for TVC only)', required=False)
-parser.add_argument('--caller', type=str,
-                    help='Caller which produced the query VCF (GATK, TVC, Deepvariant, VarScan2, LoFreq, VarDict, Freebayes)', required=True)
+
 parser.add_argument('--report', type=str,
                     help='Produce HTML report (True or False, optional, for TVC only, default: False)', required=False, default = False) 
+'''
 args = parser.parse_args()
 
 #if the caller is not recognized by the tool raise error
@@ -76,10 +79,7 @@ callers_list = ['GATK', 'TVC', 'Deepvariant', 'VarScan2', 'LoFreq', 'VarDict', '
 if args.caller not in callers_list:
     print('Caller not recognized... Please, check if the caller is supported')
     sys.exit()
-if args.caller != 'TVC' and args.report == True:
-    raise Exception("Report or ROC plot are allowed only for TVC caller to date!")
-if args.report == True:
-    raise Exception("Report is not available anymore. Please, use the shiny application instead.")
+
 
 
 #Set folders
@@ -105,8 +105,14 @@ if not os.path.exists(args.out_dir + "/Metrics/"):
 
 #Create query input
 input_vcf = ''
+input_vcf = args.query_vcf.split('.')[0] + '_split.vcf'
+print('Starting bcftools norm...')
+command = 'bcftools norm -m-any ' + args.query_vcf  + ' -f ' + args.fasta + ' > ' + input_vcf
+process = sp.Popen(command, shell=True)
+process.wait()
 
 print("Converting VCF files to AVinput files...")
+'''
 ##split multialleic variants and their parameters
 if args.caller == 'TVC':
     input_vcf = args.query_vcf.split('.')[0] + '_split.vcf'
@@ -116,10 +122,10 @@ if args.caller == 'TVC':
 
 else:
     input_vcf = args.query_vcf
-
+'''
 if args.query_format == 'VCF':
     #Convert to AVinput query VCF
-    command = 'perl ' + annovar_folder +  'convert2annovar.pl --format vcf4 ' + input_vcf + ' --includeinfo --outfile ' +  input_vcf.split('.')[0] + '.avinput'
+    command = 'perl ' + annovar_folder +  '/convert2annovar.pl --format vcf4 ' + input_vcf + ' --includeinfo --outfile ' +  input_vcf.split('.')[0] + '.avinput'
     process = sp.Popen(command, shell = True)
     process.wait()
 else:
@@ -127,7 +133,7 @@ else:
 
 if args.gt_format == 'VCF':
     #Convert to AVinput GT VCF
-    command = 'perl ' + annovar_folder + 'convert2annovar.pl --format vcf4 ' + args.ground_truth + ' --includeinfo --outfile ' + args.ground_truth.split('.')[0] + '.avinput' 
+    command = 'perl ' + annovar_folder + '/convert2annovar.pl --format vcf4 ' + args.ground_truth + ' --includeinfo --outfile ' + args.ground_truth.split('.')[0] + '.avinput' 
     process = sp.Popen(command, shell = True)
     process.wait()
 else:
@@ -147,8 +153,9 @@ if args.vaf_query == None and args.vaf_gt == None:
     process = sp.Popen(command, shell = True)
     process.wait()
 else:
+    ' --query_vaf ' + xstr(args.vaf_query) + ' --query_qd ' + xstr(args.qd_query) + ' --gt_vaf ' + xstr(args.vaf_gt) + ' --gt_qd ' + xstr(args.qd_gt) +
 '''
-command = 'Rscript ' + script_folder + '/recaller.R -v ' + input_vcf.split('.')[0] + '_var_type.avinput' + ' -g ' + args.ground_truth.split('.')[0] + '_var_type.avinput' + ' --query_vaf ' + xstr(args.vaf_query) + ' --query_qd ' + xstr(args.qd_query) + ' --gt_vaf ' + xstr(args.vaf_gt) + ' --gt_qd ' + xstr(args.qd_gt) + ' --out ' + args.out_dir + '/Metrics/' + ' --caller ' + args.caller
+command = 'Rscript ' + script_folder + '/recaller.R -v ' + input_vcf.split('.')[0] + '_var_type.avinput' + ' -g ' + args.ground_truth.split('.')[0] + '_var_type.avinput' + ' --out ' + args.out_dir + '/Metrics/' + ' --caller ' + args.caller
 process = sp.Popen(command, shell = True)
 process.wait()
 
@@ -265,6 +272,7 @@ else:
         process.wait()
         
         print('Tables generated!')
+        '''
         print('generating ReportME...')
         if args.report == 'True':
             command = 'Rscript ' + script_folder + 'report_gen.R  ' + script_folder + 'ReportME.Rmd ' + input_vcf.split('.')[0] + '_var_type.avinput ' + args.out_dir + '/Metrics/TPs_snv.txt ' + args.out_dir + '/Metrics/TPs_indel.txt ' + args.out_dir + '/Metrics/FPs_snv.txt ' + args.out_dir + '/Metrics/FPs_indel.txt ' + args.out_dir + '/Metrics/FNs_snv.txt ' + args.out_dir + '/Metrics/FNs_indel.txt ' + args.out_dir + '/Metrics/metrics_snv_seq_evaluation.txt ' + args.out_dir +'/Metrics/metrics_indel_seq_evaluation.txt ' + args.caller
@@ -276,6 +284,7 @@ else:
             process.wait()
         else:
             print('Skipping report...')
+        '''
     print('Removing temporary files')
     print('Please wait...')
     command = 'rm ' + args.out_dir + '/genome_cov.txt'

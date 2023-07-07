@@ -40,6 +40,7 @@ if(info$size != 0){
   pileup_FNs_snv <- read.delim(opt$pileup_file_snv, 
                          , sep = "\t"
                          , header = F)
+                         cat("Reading pileup_FN_SNV", "\n")
 }else{
   pileup_FNs_snv <- data.frame(matrix(nrow = 0, ncol = 5))
   colnames(pileup_FNs_snv) = empty_cols
@@ -50,6 +51,7 @@ if(info$size != 0){
   pileup_FNs_indel <- read.delim(opt$pileup_file_indel, 
                          , sep = "\t"
                          , header = F)
+                         cat("Reading pileup_FN_indel", "\n")
 }else{
   pileup_FNs_indel <- data.frame(matrix(nrow = 0, ncol = 5))
   colnames(pileup_FNs_indel) = empty_cols
@@ -60,6 +62,7 @@ if(info$size != 0){
   TPs_snv <- read.delim(opt$TPs_table_snv
                   , sep = " "
                   , header = F)
+                  cat("Reading tp_SNV", "\n")
 }else{
   TPs_snv <- data.frame(matrix(nrow = 0, ncol = 5))
   colnames(TPs_snv) = empty_cols
@@ -70,6 +73,7 @@ if(info$size != 0){
   TPs_indel <- read.delim(opt$TPs_table_indel
                   , sep = " "
                   , header = F)
+                  cat("Reading TP_INDEL", "\n")
 }else{
   TPs_indel <- data.frame(matrix(nrow = 0, ncol = 5))
   colnames(TPs_indel) = empty_cols
@@ -79,6 +83,7 @@ if(info$size != 0){
   FPs_snv <- read.delim(opt$FPs_table_snv
                   , sep = " "
                   , header = F)
+                  cat("Reading FP_SNV", "\n")
 }else{
   FPs_snv <- data.frame(matrix(nrow = 0, ncol = 5))
   colnames(FPs_snv) = empty_cols
@@ -89,6 +94,7 @@ if(info$size != 0){
   FPs_indel <- read.delim(opt$FPs_table_indel
                   , sep = " "
                   , header = F)
+                  cat("Reading FP_INDEL", "\n")
 }else{
   FPs_indel <- data.frame(matrix(nrow = 0, ncol = 5))
   colnames(FPs_indel) = empty_cols
@@ -109,6 +115,7 @@ if(info$size != 0){
   FNs_indel <- read.delim(opt$FNs_table_indel
                   , sep = " "
                   , header = F)
+                  cat("Reading FN_SNV", "\n")
 }else{
   FNs_indel <- data.frame(matrix(nrow = 0, ncol = 5))
   colnames(FNs_indel) = empty_cols
@@ -117,10 +124,12 @@ if(info$size != 0){
 metrics_snv <- read.delim(opt$metrics_snv
                   , sep = " "
                   , header = T)
+                  cat("Reading metrics", "\n")
 
 metrics_indel <- read.delim(opt$metrics_indel
                   , sep = " "
                   , header = T)
+                  cat("Reading metrics_INDEL", "\n")
 #store variants into the rds list
 metrics_rds[["TPs_snv"]] = TPs_snv
 metrics_rds[["FPs_snv"]] = FPs_snv
@@ -129,6 +138,9 @@ metrics_rds[["TPs_indel"]] = TPs_indel
 metrics_rds[["FPs_indel"]] = FPs_indel
 metrics_rds[["FNs_indel"]] = FNs_indel
 #if provided takes into account the number of high confidence bases covered by the panel
+
+
+
 if (opt$bases != "NA"){
     options(scipen=999)
     bases <- read.delim(opt$bases #high conf regions covered by the panel
@@ -208,10 +220,15 @@ if (is.null(pileup_FNs_snv) == FALSE){
             , row.names = F
             , eol = "\n"
             , quote = F)
-
+    info = file.info(paste0(opt$out, "TPs_to_add_snv.txt"))
+    if(info$size != 0){
     TPs_to_add<- read.delim(paste0(opt$out, "TPs_to_add_snv.txt")
                 , sep = " "
                 , header = F)
+    }
+    if (!exists('TPs_to_add')){
+      TPs_to_add = data.frame()
+    }
     #check the existence of the table file
     info = file.info(paste0(opt$out, "FNs_updated_snv.txt"))
     if(info$size != 0){
@@ -248,7 +265,7 @@ if (is.null(pileup_FNs_snv) == FALSE){
       total_bases <- sum(as.numeric(TPs_updated$V4)) + sum(as.numeric(FPs_snv$V4))
     }
     #if bases is provided compute the TNs 
-    if (opt$bases != "NA"){
+    if (opt$bases != "NA" && !is.null(covered_bases)){
     TNs_snv <- (as.numeric(covered_bases) - as.numeric(total_bases))
 
     }
@@ -417,7 +434,7 @@ if (is.null(pileup_FNs_indel) == FALSE){
     total_bases <- sum(as.numeric(TPs_updated$V4)) + sum(as.numeric(FPs_indel$V4))
   }
   #if bases is provided compute the TNs 
-  if (opt$bases != "NA"){
+  if (opt$bases != "NA" && !is.null(covered_bases)){
       TNs_indel <- (as.numeric(covered_bases) - as.numeric(total_bases))
       
   }

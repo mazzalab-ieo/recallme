@@ -8,18 +8,20 @@ RecallME: a tool for VCF files comparison and efficient validation method
 ![](https://img.shields.io/static/v1?label=Container&message=Docker&color=lightgrey)
 
 
+RecallME is a containerized python tool for VCF file comparison and variant calling pipelines benchmarking and optimization.
 
-RecallME is a condarized python tool for VCF files comparison and variant calling pipelines benchmarking and optimization.
+### Quick start
+To run RecallME you need to activate the conda environment and to install singularity (> v.3) and ANNOVAR (it requires a license free of charge for non-commercial purposes). For more information about ANNOVAR, please visit the <a href="https://annovar.openbioinformatics.org/en/latest/" target="_blank"> official website</a>
 
-## Installation and setup
-Once the repository has been pulled, user has to install the conda environment from the yml file by typing the following command
+### Installation and setup
+To start using RecallME v.0.2, type the following commands:
 ```
-conda env create -f RecallME_0.1.yml --prefix {path/to/env}
+git clone https://github.com/mazzalab-ieo/recallme.git
+cd recallme/
+conda env create --file env.txt --name {name_env}
 ```
-To run RecallME you need to activate the conda environment and to install singularity and ANNOVAR (it requires a license which is free for non-commercial use).
-For more information about ANNOVAR, please visit https://annovar.openbioinformatics.org/en/latest/
 
-## Basic commands
+### Basic commands
 To run a comparison, type:
 ```
 python RecallME.py -q $QUERY_VCF \
@@ -41,24 +43,26 @@ python RecallME.py -q $QUERY_VCF \
 * **CALLER_NAME** the name of the caller used to produce the query VCF file (GATK, TVC, Deepvariant, VarScan, LoFreq)
 
 For more info on required and not required commands, please type:
+```
 python RecallME.py --help
+```
+### Tutorial 
+To run the example, open a terminal and type:
+```
+conda activate {name_env}
+cd recallme/
+#add the annovar folder within run_example.sh
+bash run_example.sh
+```
+<code>run_example.sh</code> produces an outdir/ folder in the run_example/ directory as follows:<br>
 
-## Pipeline optimization
-Go to https://translational-oncology-lab.shinyapps.io/recallme/ and load: 
-* **{query/ground_truth}_var_type.avinput files**
-* **.rds object**
-Use the UI commands to fine-tuning the Variant Calling parameters to optimize your pipeline.
+<img src="www/diag.png" alt="diag" width="500" height="333">
+              
+After the output has been generated, go to the <a href="https://translational-oncology-lab.shinyapps.io/recallme/" target="_blank">web app</a> and load the AVinputs (query_split_var_type.avinput + ground_truth_var_type.avinput) and the rds object to visualize your results and to optimize your pipeline.
 
-## Data Visualization
-To perform benchmarking analysis visualization and fine-tuning of VC parameters it is possible to use the RecallME web application, available at https://translational-oncology-lab.shinyapps.io/recallme/ or downloadable as a docker image at https://hub.docker.com/r/gianlucavozza/recallme_gui
+For additional information, please check the <a href="https://translational-oncology-lab.shinyapps.io/recallme/" target="_blank">about</a> page for interrogating the manual.
 
-## Info and comments
-If you need help or you have comments and tips for improving RecallME, please send a mail to gianluca.vozza@ieo.it
+### License
 
-## License
-
- RecallME is a free non-commercial software. Users need to obtain the ANNOVAR license by themselves.
- 
- ## Reference
- 
-RecallME is currently under submission to a peer-reviewed journal.
+RecallME is under [MIT License](LICENSE).
+BEDTOOLS is under [GNU General Public License](BEDTOOLS_LICENSE).
