@@ -54,7 +54,6 @@ cd recallme/
 #add the annovar folder within run_example.sh
 bash run_example.sh
 ```
-
 <code>run_example.sh</code> produces an outdir/ folder in the run_example/ directory as follows:<br>
 
 <img src="www/diag.png" alt="diag" width="500" height="333">
