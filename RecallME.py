@@ -86,15 +86,15 @@ if args.caller not in callers_list:
 #scripts folder
 script_folder = os.path.dirname(os.path.realpath(__file__)) + ('/scripts/')
 #annovar folder
-annovar_folder = args.annovar_dir
+annovar_folder = args.annovar_dir + '/'
 #bam_folder
-bam_folder = os.path.dirname(args.bam)
+bam_folder = os.path.dirname(args.bam) + '/'
 #fasta_folder
-fasta_folder = os.path.dirname(args.fasta)
+fasta_folder = os.path.dirname(args.fasta) + '/'
 #query folder
-query_folder = os.path.dirname(args.query_vcf)
+query_folder = os.path.dirname(args.query_vcf) + '/'
 #GT folder
-gt_folder = os.path.dirname(args.ground_truth)
+gt_folder = os.path.dirname(args.ground_truth) + '/'
 
 #Create a folder for Metrics
 if not os.path.exists(args.out_dir):
