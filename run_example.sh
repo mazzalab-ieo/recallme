@@ -6,7 +6,7 @@ bed=$folder"high_conf.bed"
 bam=$folder"input.bam"
 fasta=$folder"chr_22.fa"
 genome_bed=$folder"chr_22.fa.fai"
-annovar="/hpcnfs/scratch/temporary/gersom_260623/workflow_automation/annovar/annovar"
+annovar=""
 out=$folder"outdir/"
 caller="TVC"
 
