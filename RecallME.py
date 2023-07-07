@@ -86,15 +86,15 @@ if args.caller not in callers_list:
 #scripts folder
 script_folder = os.path.dirname(os.path.realpath(__file__)) + ('/scripts/')
 #annovar folder
-annovar_folder = args.annovar_dir + '/'
+annovar_folder = args.annovar_dir
 #bam_folder
-bam_folder = os.path.dirname(args.bam) + '/'
+bam_folder = os.path.dirname(args.bam)
 #fasta_folder
-fasta_folder = os.path.dirname(args.fasta) + '/'
+fasta_folder = os.path.dirname(args.fasta)
 #query folder
-query_folder = os.path.dirname(args.query_vcf) + '/'
+query_folder = os.path.dirname(args.query_vcf)
 #GT folder
-gt_folder = os.path.dirname(args.ground_truth) + '/'
+gt_folder = os.path.dirname(args.ground_truth)
 
 #Create a folder for Metrics
 if not os.path.exists(args.out_dir):
@@ -125,7 +125,7 @@ else:
 '''
 if args.query_format == 'VCF':
     #Convert to AVinput query VCF
-    command = 'perl ' + annovar_folder +  'convert2annovar.pl --format vcf4 ' + input_vcf + ' --includeinfo --outfile ' +  input_vcf.split('.')[0] + '.avinput'
+    command = 'perl ' + annovar_folder +  '/convert2annovar.pl --format vcf4 ' + input_vcf + ' --includeinfo --outfile ' +  input_vcf.split('.')[0] + '.avinput'
     process = sp.Popen(command, shell = True)
     process.wait()
 else:
@@ -133,7 +133,7 @@ else:
 
 if args.gt_format == 'VCF':
     #Convert to AVinput GT VCF
-    command = 'perl ' + annovar_folder + 'convert2annovar.pl --format vcf4 ' + args.ground_truth + ' --includeinfo --outfile ' + args.ground_truth.split('.')[0] + '.avinput' 
+    command = 'perl ' + annovar_folder + '/convert2annovar.pl --format vcf4 ' + args.ground_truth + ' --includeinfo --outfile ' + args.ground_truth.split('.')[0] + '.avinput' 
     process = sp.Popen(command, shell = True)
     process.wait()
 else:
