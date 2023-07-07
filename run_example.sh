@@ -65,3 +65,12 @@ python $PWD/RecallME.py \
 -a $annovar \
 -o $out \
 --caller $caller
+
+
+
+echo "Your results are ready and available in run_example"
+echo "Please, go to https://translational-oncology-lab.shinyapps.io/recallme/ and load your results"
+echo "file 1: run_example/query_split_var_type.avinput"
+echo "file 2: run_example/ground_truth_var_type.avinput"
+echo "file 3: run_example/outdir/Metrics/metrics_to_upload.rds"
+
