@@ -65,5 +65,5 @@ For additional information, please check the <a href="https://translational-onco
 
 ### License
 
-RecallME is under [MIT License](recallme_LICENSE).
+RecallME is under [MIT License](LICENSE).
 BEDTOOLS is under [GNU General Public License](BEDTOOLS_LICENSE).
