@@ -13,6 +13,13 @@ caller="TVC"
 file_id="1ZDlbBrsZhfGqfLEbQIl1WRqfBC0Eh1QI"  # Replace with the Google Drive file ID
 bam="run_example/input.bam"  # Replace with the desired output file name
 
+
+
+echo "Downloading input.bam and input.bam.bai files..."
+
+
+
+
 # Download the file
 curl -c cookies.txt -s -L "https://drive.google.com/uc?export=download&id=${file_id}" > /dev/null
 curl -Lb cookies.txt "https://drive.google.com/uc?export=download&confirm=$(awk '/download/ {print $NF}' cookies.txt)&id=${file_id}" -o "${bam}"
