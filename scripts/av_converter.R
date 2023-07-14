@@ -37,7 +37,7 @@ df$base = as.character(df$base)
 #deletions conversion
 if (length(idx_del) == 0){
   df = df
-}else if(idx_del > 0){
+}else{
   for (i in idx_del){
     #print(i)
     base = as.character(gsub("-", "",df[i, "base"]))
@@ -50,7 +50,7 @@ if (length(idx_del) == 0){
 #insertions conversion
 if (length(idx_ins) == 0){
   df = df
-}else if(length(idx_ins > 0)) {
+}else{
   for (i in idx_ins){
     #print(i)
     base = as.character(gsub("\\+", "",df[i, "base"]))
