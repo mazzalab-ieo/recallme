@@ -66,3 +66,6 @@ For additional information, please check the <a href="https://translational-onco
 
 RecallME is under [MIT License](LICENSE).
 BEDTOOLS is under [GNU General Public License](BEDTOOLS_LICENSE).
+
+### Citations
+If you use RecallME in a scientific article, please cite: <a href="https://doi.org/10.1093/bioinformatics/btad722" target="_blank" >G Vozza, E Bonetti, G Tini, V Favalli, G Frige’, G Bucci, S De Summa, M Zanfardino, F Zapelloni, L Mazzarella, Benchmarking and improving the performance of variant-calling pipelines with RecallME, Bioinformatics, 2023;, btad722, https://doi.org/10.1093/bioinformatics/btad722 </a>
